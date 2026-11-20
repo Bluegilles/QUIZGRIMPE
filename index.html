@@ -203,6 +203,9 @@ body.joueur #lbTop{margin-left:0}
 .board .more{background:none;border:none;font:inherit;color:inherit;letter-spacing:inherit;cursor:pointer;padding:4px 20px}
 .seeall{display:block;margin:6px auto 0;background:none;border:none;text-decoration:underline;cursor:pointer;color:var(--ink);font:600 .9rem var(--body)}
 .blinks{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}.blinks .seeall{margin:6px 0 0}
+.apbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;font:600 .8rem var(--mono);color:var(--muted)}
+.apbar button{font:600 .8rem var(--body);border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 10px;cursor:pointer}
+.apbar button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .lbh{text-align:center;font:900 1.25rem var(--display);margin:6px 0 0}
 .played #yd,.welcome:not(.first) #go1{width:auto;display:block;margin-inline:auto;padding-inline:32px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -499,8 +502,8 @@ const FORMATS=["choice","multi","tf","odd","map","slider","range","order","pairs
 const LABEL={choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre"};
 
 // ================= Rotation quotidienne =================
-const JOUEUR=true; // true sur le site public (build_site.py) : vue joueur seule, quiz programmés seulement
-let dayOffset=0, mode=JOUEUR?"daily":"bank", BANKQ=null, PROG=null; // PROG : {"2026-11-23":[questions…]}
+const JOUEUR=true, APERCU=false; // APERCU : page de test de Gilles (vue joueur, tous les jours proposés, rejouables) // true sur le site public (build_site.py) : vue joueur seule, quiz programmés seulement
+let dayOffset=0, mode=JOUEUR||APERCU?"daily":"bank", BANKQ=null, PROG=null; // PROG : {"2026-11-23":[questions…]}
 function progDecode(o){const r={};for(const[k,v]of Object.entries(o||{}))try{r[k]=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(v),c=>c.charCodeAt(0))))}catch(e){}return r}
 const FAMS=["Outdoor","Compétition","Athlètes","Cotations"];
 function bankQuiz(){
@@ -572,7 +575,7 @@ function baseOffset(){ // le « quiz du moment » : aujourd'hui, ou le dernier q
 }
 const dayName=()=>currentDate().toLocaleDateString(T.loc,{weekday:"long"});
 function start(){
-  stopTimer();if(mode==="daily"&&dayOffset===0)dayOffset=baseOffset();$("#lbTop").hidden=false;
+  stopTimer();$("#lbTop").hidden=false;
   const d=currentDate();
   $("#dlabel").textContent=d.toLocaleDateString(T.loc,{weekday:"short",day:"numeric",month:"long"});
   $("#next").disabled=JOUEUR&&dayOffset>=0;
@@ -590,12 +593,12 @@ function start(){
   const P=PTXT[LANG||"fr"],nm=pseudoGet();
   const hi=nm?P.hiName(`<span class="pname" style="font:inherit;color:var(--magenta)">${hesc(nm)}</span>`):P.hiBoss;
   let form=null;
-  {const g=nm&&mode==="daily"&&dayOffset===baseOffset()&&histLoad().find(h=>h.quiz===ymd(currentDate()));if(g){homePlayed(g);return}}
+  {const g=!APERCU&&nm&&mode==="daily"&&dayOffset===0&&histLoad().find(h=>h.quiz===ymd(currentDate()));if(g){homePlayed(g);return}}
   if(!nm){
     $("#stage").innerHTML=`<section class="card welcome first"><h2 class="q">${P.welcome1}</h2><div id="onb"></div><button class="btn" id="go1">${P.play}</button></section>`;
     form=blazeForm($("#onb"),"");$("#onb .askq").classList.add("sr");
   }else{
-    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${dayOffset<0&&dayOffset===baseOffset()?P.dayQuiz(dayName()):P.daily}</button><button class="chg" id="chg">${P.chg}</button></section>`;
+    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${dayOffset!==0?P.dayQuiz(dayName()):P.daily}</button><button class="chg" id="chg">${P.chg}</button></section>`;
     $("#chg").onclick=()=>{form=blazeForm($("#onb"),nm);$("#chg").remove()};
     $("#go1").focus();
   }
@@ -778,10 +781,10 @@ const HKEY="qg-historique";
 function histLoad(){try{return JSON.parse(localStorage.getItem(HKEY)||"[]")}catch{return[]}}
 function histSave(h){try{localStorage.setItem(HKEY,JSON.stringify(h.slice(-60)))}catch{}}
 function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function recordGame(score500){
+function recordGame(score500,brut){
   const h=histLoad(),today=ymd(new Date()),qd=mode==="daily"?ymd(currentDate()):null;
   if(qd&&h.some(g=>g.quiz===qd))return h;   // un quiz du jour ne compte qu'une fois
-  h.push({jour:today,quiz:qd,score:Math.round(score500)});histSave(h);if(qd)sendScore(qd,score500);return h;
+  h.push({jour:today,quiz:qd,score:Math.round(score500)});histSave(h);if(qd)sendScore(qd,brut??score500);return h;
 }
 function levelOf(h){
   const last=h.slice(-10).map(g=>g.score).sort((a,b)=>b-a).slice(0,5);
@@ -813,10 +816,10 @@ const PSEUDO={
   w:[["Regleta","f"],["Placa","f"],["Arista","f"],["Fisura","f"],["Pinza","f"],["Romo","m"],["Lance","m"],["Talonaje","m"],["Magnesio","m"],["Desplome","m"],["Crux","m"],["Flash","m"],["Encadene","m"]],
   a:[["Dorado","Dorada"],["Salvaje","Salvaje"],["Loco","Loca"],["Pegajoso","Pegajosa"],["Volador","Voladora"],["Astuto","Astuta"],["Zen","Zen"],["Cósmico","Cósmica"],["Ligero","Ligera"],["Mágico","Mágica"]],order:"na"}};
 const PTXT={
- fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",dayQuiz:w=>`Le quiz de ${w}`,doneDay:(w,n)=>`Tu as déjà fait le quiz de ${w} : ${n} pts.`,noQuiz:"Pas de quiz aujourd’hui 🧗",nextOn:d=>`Prochain quiz : ${d}.`,done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
- en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",dayQuiz:w=>`${w}’s quiz`,doneDay:(w,n)=>`You’ve already played ${w}’s quiz: ${n} pts.`,noQuiz:"No quiz today 🧗",nextOn:d=>`Next quiz: ${d}.`,done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
- de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",dayQuiz:w=>`Das Quiz vom ${w}`,doneDay:(w,n)=>`Du hast das Quiz vom ${w} schon gespielt: ${n} Pkt.`,noQuiz:"Heute kein Quiz 🧗",nextOn:d=>`Nächstes Quiz: ${d}.`,done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
- es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",dayQuiz:w=>`El quiz del ${w}`,doneDay:(w,n)=>`Ya jugaste el quiz del ${w}: ${n} pts.`,noQuiz:"Hoy no hay quiz 🧗",nextOn:d=>`Próximo quiz: ${d}.`,done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
+ fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",playDay:w=>`Jouer au quiz de ${w}`,dayQuiz:w=>`Le quiz de ${w}`,doneDay:(w,n)=>`Tu as déjà fait le quiz de ${w} : ${n} pts.`,noQuiz:"Pas de quiz aujourd’hui 🧗",nextOn:d=>`Prochain quiz : ${d}.`,done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
+ en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",playDay:w=>`Play ${w}’s quiz`,dayQuiz:w=>`${w}’s quiz`,doneDay:(w,n)=>`You’ve already played ${w}’s quiz: ${n} pts.`,noQuiz:"No quiz today 🧗",nextOn:d=>`Next quiz: ${d}.`,done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
+ de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",playDay:w=>`Das Quiz vom ${w} spielen`,dayQuiz:w=>`Das Quiz vom ${w}`,doneDay:(w,n)=>`Du hast das Quiz vom ${w} schon gespielt: ${n} Pkt.`,noQuiz:"Heute kein Quiz 🧗",nextOn:d=>`Nächstes Quiz: ${d}.`,done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
+ es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",playDay:w=>`Jugar el quiz del ${w}`,dayQuiz:w=>`El quiz del ${w}`,doneDay:(w,n)=>`Ya jugaste el quiz del ${w}: ${n} pts.`,noQuiz:"Hoy no hay quiz 🧗",nextOn:d=>`Próximo quiz: ${d}.`,done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
 const PBAD=["con","conne","pute","merde","nazi","fuck","shit","bitch","arsch","puta","mierda","nique","salope","enculé","hitler"];
 const prnd=a=>a[Math.floor(Math.random()*a.length)];
 let pForm=Math.random()<.5?0:1;
@@ -858,7 +861,7 @@ function blazeForm(host,cur){
 function end(noRec){
   const nq=nextQuiz(mode==="daily"?dayOffset:0);
   const n=results.filter(r=>r.ok).length,pts=results.reduce((s,r)=>s+r.pts,0),max=qs.length*100;
-  const H=(mode==="all"||noRec)?histLoad():recordGame(pts*500/max),lvl=levelOf(H),streak=streakOf(H);
+  const H=(mode==="all"||noRec||APERCU)?histLoad():recordGame(pts*500/max,pts),lvl=levelOf(H),streak=streakOf(H);
   const grid=results.map(r=>r.ok?"✅":"❌").join("");
   const r5=pts*500/max,verdict=r5>=400&&r5<450?(e=>e[Math.floor(Math.random()*e.length)])(T.ends45):T.ends[r5>=500?5:r5>=450?4:r5>=300?3:r5>=200?2:r5>=100?1:0];
   const dtxt=mode==="bank"?new Date().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):currentDate().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"});
@@ -915,7 +918,7 @@ const SB={url:"https://tatfnyhcduscucllbrws.supabase.co",key:"sb_publishable_u4j
 function devId(){let d=null;try{d=localStorage.getItem("qg-joueur");if(!d){d=(crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g,()=>(Math.random()*16|0).toString(16)));localStorage.setItem("qg-joueur",d)}}catch(e){}return d}
 function sbCall(path,body){return fetch(SB.url+"/rest/v1/"+path,{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)})}
 function sendScore(quiz,score){const d=devId(),p=pseudoGet();if(!JOUEUR||!d||!p)return;
-  sbCall("scores",{device:d,pseudo:p,quiz,jour:ymd(new Date()),score:Math.max(0,Math.min(500,Math.round(score)))}).then(()=>{LB={}}).catch(()=>{})}
+  sbCall("scores",{device:d,pseudo:p,quiz,jour:ymd(new Date()),score:Math.max(0,Math.min(1000,Math.round(score)))}).then(()=>{LB={}}).catch(()=>{})}
 let LB={}; // cache des classements, vidé après chaque score envoyé
 function periode(tab){const t=new Date(),f=ymd(t),q=ymd(currentDate());return tab==="day"?[q,q]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
 function demoRows(tab,myPts){ // maquette : 10 noms inventés, le joueur 143e
@@ -976,12 +979,14 @@ function nextQuiz(from){ // la veille si elle n'est pas jouée, sinon un jour no
   const free=[];for(let k=from-2;k>=from-60;k--)if(!played(k))free.push(k);
   return{k:free.length?free[Math.floor(Math.random()*free.length)]:from-1,label:T.randomQuiz};
 }
-function noQuiz(){ // pas de quiz ce jour-là (week-end, avant la première semaine) : le prochain, et un quiz passé non joué
-  const P=PTXT[LANG||"fr"],nq=nextQuiz(dayOffset);let nx=null;
+function noQuiz(){ // pas de quiz ce jour-là : « Jouer au quiz de vendredi » le week-end, sinon un quiz passé au hasard
+  const P=PTXT[LANG||"fr"],H=histLoad(),k0=baseOffset();let nx=null,btn=null;
   if(PROG){const t=ymd(currentDate());nx=Object.keys(PROG).sort().find(k=>k>t)}
+  if(k0<0){const d=new Date();d.setDate(d.getDate()+k0);if(!H.some(h=>h.quiz===ymd(d)))btn={k:k0,label:P.playDay(d.toLocaleDateString(T.loc,{weekday:"long"}))}}
+  if(!btn){const nq=nextQuiz(0);if(nq)btn={k:nq.k,label:T.randomQuiz}}
   const nd=nx?new Date(nx+"T12:00:00").toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):"";
-  $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}</section>`;
-  if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
+  $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${btn?`<button class="btn" id="yd">${btn.label}</button>`:""}</section>`;
+  if(btn)$("#yd").onclick=()=>{mode="daily";dayOffset=btn.k;if(pseudoGet()){qs=buildQuiz();idx=0;results=[];render()}else start()};
 }
 function homePlayed(g){
   const P=PTXT[LANG||"fr"],nm=pseudoGet()||"Gilles",nq=nextQuiz(dayOffset);
@@ -1015,15 +1020,22 @@ $("#next").onclick=()=>{if(!JOUEUR||dayOffset<0){dayOffset++;start()}};
 $("#mDaily").onclick=()=>{mode="daily";start()};
 $("#mAll").onclick=()=>{mode="all";start()};
 $("#mBank").onclick=()=>{mode="bank";start()};
-let VJ=JOUEUR;if(!JOUEUR)try{VJ=localStorage.getItem("qg-vue")==="joueur"}catch(e){}
+let VJ=JOUEUR||APERCU;if(!JOUEUR)try{VJ=localStorage.getItem("qg-vue")==="joueur"}catch(e){}
 function vjApply(){document.body.classList.toggle("joueur",VJ);$("#vj").textContent=VJ?"🛠 Revenir à ma vue (Gilles)":"👁 Voir la vue joueur";if(VJ){mode="daily";dayOffset=0}}
 vjApply();
 $("#vpl").onclick=()=>{homePlayed({score:380});scrollTo(0,0)};
 $("#vj").onclick=()=>{VJ=!VJ;try{localStorage.setItem("qg-vue",VJ?"joueur":"gilles")}catch(e){}vjApply();start();scrollTo(0,0)};
-if(JOUEUR){$("#vj").remove();$("#vpl").remove()}
+if(JOUEUR||APERCU){$("#vj").remove();$("#vpl").remove()}
+function apercuBar(){ // bandeau de l'aperçu : un bouton par jour proposé
+  const host=document.createElement("div");host.className="apbar";
+  const draw=()=>{const cur=ymd(currentDate());host.innerHTML=`<span>Aperçu ·</span>`+Object.keys(PROG||{}).sort().map(k=>{const d=new Date(k+"T12:00:00");return `<button data-k="${k}" aria-pressed="${k===cur}">${d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"})}</button>`}).join("");
+    host.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const t=new Date();t.setHours(12,0,0,0);dayOffset=Math.round((new Date(b.dataset.k+"T12:00:00")-t)/864e5);start();draw();scrollTo(0,0)})};
+  document.querySelector("header").after(host);draw();
+}
 const progLoad=fetch("programme.json").then(r=>r.ok?r.json():{}).then(o=>{PROG=progDecode(o);if(!Object.keys(PROG).length&&!JOUEUR)PROG=null}).catch(()=>{});
 if(JOUEUR)progLoad.then(start);
-else Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).then(d=>{BANKQ=d})]).then(start).catch(()=>{mode="daily";start()});
+else if(APERCU)progLoad.then(()=>{apercuBar();const ks=Object.keys(PROG||{}).sort();if(ks.length){const t=new Date();t.setHours(12,0,0,0);dayOffset=Math.round((new Date(ks[0]+"T12:00:00")-t)/864e5)}start();document.querySelector(".apbar [aria-pressed]")&&document.querySelectorAll(".apbar [data-k]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===ymd(currentDate())))});
+else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).then(d=>{BANKQ=d})]).then(start).catch(()=>{mode="daily";start()});
 </script>
 
 <style>

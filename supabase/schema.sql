@@ -7,7 +7,7 @@ create table if not exists public.scores (
   pseudo     text not null check (char_length(pseudo) between 1 and 30),
   quiz       date not null,                       -- jour du quiz joué
   jour       date not null default current_date,  -- jour où il a été joué
-  score      int  not null check (score between 0 and 500),
+  score      int  not null check (score between 0 and 1000), -- points du quiz (8 questions → 800 max)
   created_at timestamptz not null default now(),
   unique (device, quiz)                           -- un seul score par joueur et par quiz
 );
