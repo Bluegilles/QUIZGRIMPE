@@ -404,7 +404,7 @@ const BANK={
 };
 // ================= Langues (FR, EN, DE, ES) =================
 const I18N={
-fr:{loc:"fr-FR",bAll:"Voir tout le classement",bTop:"Top",bLess:"Réduire le classement",lbBtn:"Leaderboard",boards:"Classements",bDay:"Du jour",bMonth:"Du mois",bEver:"Depuis le début",bYou:"Toi",bYourRank:r=>`Tu es ${r}ᵉ`,bPts:"pts",bDemo:"Maquette : les joueurs et les scores sont inventés.",bBack:"Retour",bPseudo:"Choisis ton pseudo pour apparaître dans les classements.",name:"Français",daily:"Quiz du jour · 5",all:"Tester les 14 formats",bank:"Quiz au hasard · banque",bankLabel:"Banque",prev:"Jour précédent",next:"Jour suivant",
+fr:{loc:"fr-FR",bEmpty:"Personne n’a encore joué. Sois le premier !",bErr:"Classement indisponible pour le moment.",bAll:"Voir tout le classement",bTop:"Top",bLess:"Réduire le classement",lbBtn:"Leaderboard",boards:"Classements",bDay:"Du jour",bMonth:"Du mois",bEver:"Depuis le début",bYou:"Toi",bYourRank:r=>`Tu es ${r}ᵉ`,bPts:"pts",bDemo:"Maquette : les joueurs et les scores sont inventés.",bBack:"Retour",bPseudo:"Choisis ton pseudo pour apparaître dans les classements.",name:"Français",daily:"Quiz du jour · 5",all:"Tester les 14 formats",bank:"Quiz au hasard · banque",bankLabel:"Banque",prev:"Jour précédent",next:"Jour suivant",
  labels:{choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre"},
  validate:"Valider",yes:"Vrai",no:"Faux",yourAnswer:"Ta réponse",typeName:"Tape le nom",tryAgain:"Non, essaie encore",clueNext:"Indice suivant",
  cluePts:p=>`${p} pts en jeu · indice suivant −20 · erreur −20`,mapLoading:"Chargement de la carte…",mapFail:"La carte n’a pas pu se charger.",
@@ -421,7 +421,7 @@ fr:{loc:"fr-FR",bAll:"Voir tout le classement",bTop:"Top",bLess:"Réduire le cla
  streak:n=>`🔥 ${n} jours de suite`,newIn:(h,m)=>`Nouveau quiz dans ${h} h ${m} min.`,storyBy:"par Bluegilles",storyRes:(n,t)=>`RÉSULTAT · ${n}/${t} BONNES RÉPONSES`,
  storySaved:"Image enregistrée : ajoute-la à ta story Instagram.",storyPress:"Appuie longuement sur l’image pour l’enregistrer, puis ajoute-la à ta story.",storyAlt:"Image de ton score à partager en story",
  pick:"Choisis ta langue",qNote:""},
-en:{loc:"en-GB",bAll:"See the full leaderboard",bTop:"Top",bLess:"Collapse",lbBtn:"Leaderboard",boards:"Leaderboards",bDay:"Today",bMonth:"This month",bEver:"All time",bYou:"You",bYourRank:r=>`You are #${r}`,bPts:"pts",bDemo:"Mock-up: players and scores are made up.",bBack:"Back",bPseudo:"Choose a nickname to appear on the leaderboards.",name:"English",daily:"Daily quiz · 5",all:"Try all 14 formats",bank:"Random quiz · bank",bankLabel:"Bank",prev:"Previous day",next:"Next day",
+en:{loc:"en-GB",bEmpty:"Nobody has played yet. Be the first!",bErr:"Leaderboard unavailable right now.",bAll:"See the full leaderboard",bTop:"Top",bLess:"Collapse",lbBtn:"Leaderboard",boards:"Leaderboards",bDay:"Today",bMonth:"This month",bEver:"All time",bYou:"You",bYourRank:r=>`You are #${r}`,bPts:"pts",bDemo:"Mock-up: players and scores are made up.",bBack:"Back",bPseudo:"Choose a nickname to appear on the leaderboards.",name:"English",daily:"Daily quiz · 5",all:"Try all 14 formats",bank:"Random quiz · bank",bankLabel:"Bank",prev:"Previous day",next:"Next day",
  labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",odd:"Odd one out",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",reveal:"Reveal · 20 s",clues:"Clue by clue",letters:"Unscramble",motus:"Hidden word",text:"Free answer"},
  validate:"Submit",yes:"True",no:"False",yourAnswer:"Your answer",typeName:"Type the name",tryAgain:"No, try again",clueNext:"Next clue",
  cluePts:p=>`${p} pts at stake · next clue −20 · wrong guess −20`,mapLoading:"Loading map…",mapFail:"The map couldn’t load.",
@@ -438,7 +438,7 @@ en:{loc:"en-GB",bAll:"See the full leaderboard",bTop:"Top",bLess:"Collapse",lbBt
  streak:n=>`🔥 ${n} days in a row`,newIn:(h,m)=>`New quiz in ${h} h ${m} min.`,storyBy:"by Bluegilles",storyRes:(n,t)=>`RESULT · ${n}/${t} CORRECT ANSWERS`,
  storySaved:"Image saved: add it to your Instagram story.",storyPress:"Press and hold the image to save it, then add it to your story.",storyAlt:"Image of your score to share in a story",
  pick:"Choose your language",qNote:"Questions are still in French for now."},
-de:{loc:"de-DE",bAll:"Ganze Rangliste ansehen",bTop:"Top",bLess:"Einklappen",lbBtn:"Rangliste",boards:"Ranglisten",bDay:"Heute",bMonth:"Dieser Monat",bEver:"Gesamt",bYou:"Du",bYourRank:r=>`Du bist auf Platz ${r}`,bPts:"Pkt.",bDemo:"Entwurf: Spieler und Ergebnisse sind erfunden.",bBack:"Zurück",bPseudo:"Wähle einen Spitznamen, um in den Ranglisten zu erscheinen.",name:"Deutsch",daily:"Quiz des Tages · 5",all:"Alle 14 Formate testen",bank:"Zufallsquiz · Fragenpool",bankLabel:"Fragenpool",prev:"Vorheriger Tag",next:"Nächster Tag",
+de:{loc:"de-DE",bEmpty:"Noch hat niemand gespielt. Sei der Erste!",bErr:"Rangliste gerade nicht verfügbar.",bAll:"Ganze Rangliste ansehen",bTop:"Top",bLess:"Einklappen",lbBtn:"Rangliste",boards:"Ranglisten",bDay:"Heute",bMonth:"Dieser Monat",bEver:"Gesamt",bYou:"Du",bYourRank:r=>`Du bist auf Platz ${r}`,bPts:"Pkt.",bDemo:"Entwurf: Spieler und Ergebnisse sind erfunden.",bBack:"Zurück",bPseudo:"Wähle einen Spitznamen, um in den Ranglisten zu erscheinen.",name:"Deutsch",daily:"Quiz des Tages · 5",all:"Alle 14 Formate testen",bank:"Zufallsquiz · Fragenpool",bankLabel:"Fragenpool",prev:"Vorheriger Tag",next:"Nächster Tag",
  labels:{choice:"Einzelauswahl",multi:"Mehrfachauswahl",tf:"Richtig oder falsch",odd:"Was passt nicht?",map:"Karte",slider:"Schieberegler",range:"Spanne",order:"In die richtige Reihenfolge",pairs:"Paare verbinden",reveal:"Enthüllung · 20 s",clues:"Hinweis für Hinweis",letters:"Buchstabensalat",motus:"Verstecktes Wort",text:"Freie Antwort"},
  validate:"Bestätigen",yes:"Richtig",no:"Falsch",yourAnswer:"Deine Antwort",typeName:"Gib den Namen ein",tryAgain:"Nein, versuch’s nochmal",clueNext:"Nächster Hinweis",
  cluePts:p=>`${p} Pkt. im Spiel · nächster Hinweis −20 · Fehler −20`,mapLoading:"Karte wird geladen…",mapFail:"Die Karte konnte nicht geladen werden.",
@@ -455,7 +455,7 @@ de:{loc:"de-DE",bAll:"Ganze Rangliste ansehen",bTop:"Top",bLess:"Einklappen",lbB
  streak:n=>`🔥 ${n} Tage in Folge`,newIn:(h,m)=>`Neues Quiz in ${h} Std. ${m} Min.`,storyBy:"von Bluegilles",storyRes:(n,t)=>`ERGEBNIS · ${n}/${t} RICHTIGE ANTWORTEN`,
  storySaved:"Bild gespeichert: füge es deiner Instagram‑Story hinzu.",storyPress:"Halte das Bild gedrückt, um es zu speichern, und füge es dann deiner Story hinzu.",storyAlt:"Bild deines Ergebnisses für die Story",
  pick:"Wähle deine Sprache",qNote:"Die Fragen sind vorerst noch auf Französisch."},
-es:{loc:"es-ES",bAll:"Ver la clasificación completa",bTop:"Top",bLess:"Reducir",lbBtn:"Clasificación",boards:"Clasificaciones",bDay:"Hoy",bMonth:"Este mes",bEver:"Histórico",bYou:"Tú",bYourRank:r=>`Estás en el puesto ${r}`,bPts:"pts",bDemo:"Maqueta: los jugadores y las puntuaciones son inventados.",bBack:"Volver",bPseudo:"Elige un apodo para aparecer en las clasificaciones.",name:"Español",daily:"Quiz del día · 5",all:"Probar los 14 formatos",bank:"Quiz aleatorio · banco",bankLabel:"Banco",prev:"Día anterior",next:"Día siguiente",
+es:{loc:"es-ES",bEmpty:"Nadie ha jugado aún. ¡Sé el primero!",bErr:"Clasificación no disponible ahora.",bAll:"Ver la clasificación completa",bTop:"Top",bLess:"Reducir",lbBtn:"Clasificación",boards:"Clasificaciones",bDay:"Hoy",bMonth:"Este mes",bEver:"Histórico",bYou:"Tú",bYourRank:r=>`Estás en el puesto ${r}`,bPts:"pts",bDemo:"Maqueta: los jugadores y las puntuaciones son inventados.",bBack:"Volver",bPseudo:"Elige un apodo para aparecer en las clasificaciones.",name:"Español",daily:"Quiz del día · 5",all:"Probar los 14 formatos",bank:"Quiz aleatorio · banco",bankLabel:"Banco",prev:"Día anterior",next:"Día siguiente",
  labels:{choice:"Respuesta única",multi:"Respuesta múltiple",tf:"Verdadero o falso",odd:"El intruso",map:"Mapa",slider:"Deslizador",range:"Horquilla",order:"Ordenar",pairs:"Unir parejas",reveal:"Revelación · 20 s",clues:"Pista a pista",letters:"Letras desordenadas",motus:"Palabra oculta",text:"Respuesta libre"},
  validate:"Validar",yes:"Verdadero",no:"Falso",yourAnswer:"Tu respuesta",typeName:"Escribe el nombre",tryAgain:"No, inténtalo de nuevo",clueNext:"Siguiente pista",
  cluePts:p=>`${p} pts en juego · siguiente pista −20 · error −20`,mapLoading:"Cargando el mapa…",mapFail:"No se pudo cargar el mapa.",
@@ -775,7 +775,7 @@ function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function recordGame(score500){
   const h=histLoad(),today=ymd(new Date()),qd=mode==="daily"?ymd(currentDate()):null;
   if(qd&&h.some(g=>g.quiz===qd))return h;   // un quiz du jour ne compte qu'une fois
-  h.push({jour:today,quiz:qd,score:Math.round(score500)});histSave(h);return h;
+  h.push({jour:today,quiz:qd,score:Math.round(score500)});histSave(h);if(qd)sendScore(qd,score500);return h;
 }
 function levelOf(h){
   const last=h.slice(-10).map(g=>g.score).sort((a,b)=>b-a).slice(0,5);
@@ -904,42 +904,49 @@ async function shareStory(o){
 // --- Classements (maquette, données inventées) ---
 const DEMO_NAMES=["Captain_Crux","Mamie_Dévers","Réglette_Dorée","Turbo_Mauvaise_foi","Docteur_Zipette","Tonton_Pof","Bleausard_Rusé","Dalle_Sauvage","Iron_Biceps","Princesse_Peur_du_vide"];
 const DEMO={day:[500,500,492,480,463,450,441,430,412,400],month:[9620,9410,9175,8940,8870,8650,8420,8310,8050,7990],ever:[61240,58900,55310,54020,51780,49660,47320,45900,44010,42870]};
-function boardBody(tab,myPts){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière (maquette)
-  const mine={day:myPts??292,month:4120,ever:18460},rank={day:143,month:212,ever:388};
-  const tabs=[["day",T.bDay],["month",T.bMonth],["ever",T.bEver]];
-  const off=tab==="month"?2:tab==="ever"?5:0,step={day:6,month:35,ever:120}[tab];
-  const nmOf=i=>DEMO_NAMES[(i*3+off)%10],li=(r,n,v,c="")=>`<li class="${c}"><span class="rk">${r}</span><span class="nm">${n}</span><span class="pt">${v.toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-  const top=DEMO[tab].slice(0,5).map((v,i)=>li(DEMO[tab].indexOf(v)+1,nmOf(i),v,i===4?"fadeout":"")).join("");
-  const me=pseudoGet()?hesc(pseudoGet())+" <small>("+T.bYou+")</small>":T.bYou,R=rank[tab],M=mine[tab];
-  const near=li(R-1,NEAR_NAMES[(off+1)%NEAR_NAMES.length],M+step,"near fadein")+li(R,me,M,"me")+li(R+1,NEAR_NAMES[(off+2)%NEAR_NAMES.length],Math.max(0,M-step),"near");
-  return `<div class="tabs">${tabs.map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>
-    <ol class="board" id="bshort">${top}<li class="gap"><button class="more" data-full>···</button></li>${near}</ol>
-    <button class="lnk seeall" data-full>${T.bAll}</button>`;
+// ================= Classements (Supabase sur le site ; maquette ailleurs) =================
+const SB={url:"https://tatfnyhcduscucllbrws.supabase.co",key:"sb_publishable_u4jE65-a14Yf2Vmpg-EC9g_hv2-MDC1"};
+function devId(){let d=null;try{d=localStorage.getItem("qg-joueur");if(!d){d=(crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g,()=>(Math.random()*16|0).toString(16)));localStorage.setItem("qg-joueur",d)}}catch(e){}return d}
+function sbCall(path,body){return fetch(SB.url+"/rest/v1/"+path,{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)})}
+function sendScore(quiz,score){const d=devId(),p=pseudoGet();if(!JOUEUR||!d||!p)return;
+  sbCall("scores",{device:d,pseudo:p,quiz,jour:ymd(new Date()),score:Math.max(0,Math.min(500,Math.round(score)))}).then(()=>{LB={}}).catch(()=>{})}
+let LB={}; // cache des classements, vidé après chaque score envoyé
+function periode(tab){const t=new Date(),f=ymd(t);return tab==="day"?[f,f]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
+function demoRows(tab,myPts){ // maquette : 10 noms inventés, le joueur 143e
+  const mine={day:myPts??292,month:4120,ever:18460}[tab],R={day:143,month:212,ever:388}[tab],off=tab==="month"?2:tab==="ever"?5:0,top=DEMO[tab],last=top[top.length-1],N=R+25,all=[...NEAR_NAMES,...DEMO_NAMES],rows=[];
+  for(let r=1;r<=N;r++){let v,n;if(r<=top.length){v=top[r-1];n=DEMO_NAMES[((r-1)*3+off)%10]}else{v=r<R?Math.round(last-(last-mine-1)*(r-top.length)/(R-1-top.length)):Math.round(mine-(r-R)*mine*.004);n=all[(r*7+off)%all.length]+"_"+(r%97)}
+    rows.push(r===R?{rang:r,pseudo:pseudoGet()||T.bYou,points:mine,moi:true}:{rang:r,pseudo:n,points:v,moi:false})}
+  return rows}
+async function getBoard(tab,myPts){
+  if(!JOUEUR)return{rows:demoRows(tab,myPts),demo:true};
+  if(LB[tab])return LB[tab];
+  try{const[debut,fin]=periode(tab);const r=await fetch(SB.url+"/rest/v1/rpc/classement",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({debut,fin,moi:devId()})});
+    if(!r.ok)throw 0;const rows=await r.json();return LB[tab]={rows,demo:false}}
+  catch(e){return{rows:[],demo:false,err:true}}
 }
-function boardFull(tab,myPts){ // tout le classement, qu'on fait défiler ; s'ouvre sur la ligne du joueur (maquette)
-  const mine={day:myPts??292,month:4120,ever:18460},rank={day:143,month:212,ever:388},R=rank[tab],M=mine[tab],N=R+25;
-  const off=tab==="month"?2:tab==="ever"?5:0,top=DEMO[tab],last=top[top.length-1];
-  const all=[...NEAR_NAMES,...DEMO_NAMES],me=pseudoGet()?hesc(pseudoGet())+" <small>("+T.bYou+")</small>":T.bYou;
-  let rows="";
-  for(let r=1;r<=N;r++){
-    let v,n,c="";
-    if(r<=top.length){v=top[r-1];n=DEMO_NAMES[((r-1)*3+off)%10]}
-    else{v=r<R?Math.round(last-(last-M-1)*(r-top.length)/(R-1-top.length)):Math.round(M-(r-R)*M*.004);n=all[(r*7+off)%all.length]+"_"+(r%97)}
-    if(r===R){v=M;n=me;c="me"}
-    rows+=`<li class="${c}"${r===R?' id="bme"':""}><span class="rk">${r}</span><span class="nm">${n}</span><span class="pt">${v.toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-  }
-  return `<div class="tabs">${[["day",T.bDay],["month",T.bMonth],["ever",T.bEver]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>
-    <ol class="board full" id="bfull">${rows}</ol><div class="blinks"><button class="lnk seeall" data-top>↑ ${T.bTop}</button><button class="lnk seeall" data-short>${T.bLess}</button></div>`;
+const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${o.moi?hesc(o.pseudo)+" <small>("+T.bYou+")</small>":hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;
+const tabsHTML=tab=>`<div class="tabs">${[["day",T.bDay],["month",T.bMonth],["ever",T.bEver]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
+function boardBody(tab,B){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière
+  const rows=B.rows,i=rows.findIndex(o=>o.moi);
+  if(!rows.length)return tabsHTML(tab)+`<p class="hint">${B.err?T.bErr:T.bEmpty}</p>`;
+  let body;
+  if(i<0||i<=5)body=rows.slice(0,Math.max(5,i+2)).map(o=>liRow(o)).join("");
+  else body=rows.slice(0,5).map((o,k)=>liRow(o,k===4?"fadeout":"")).join("")+`<li class="gap"><button class="more" data-full>···</button></li>`+liRow(rows[i-1],"near fadein")+liRow(rows[i])+(rows[i+1]?liRow(rows[i+1],"near"):"");
+  return tabsHTML(tab)+`<ol class="board" id="bshort">${body}</ol>`+(rows.length>5?`<button class="lnk seeall" data-full>${T.bAll}</button>`:"");
 }
-function wireBoard(host,tab,myPts,full){
-  host.innerHTML=full?boardFull(tab,myPts):boardBody(tab,myPts);
+function boardFull(tab,B){ // tout le classement, qu'on fait défiler ; s'ouvre sur la ligne du joueur
+  return tabsHTML(tab)+`<ol class="board full" id="bfull">${B.rows.map(o=>liRow(o)).join("")}</ol><div class="blinks"><button class="lnk seeall" data-top>↑ ${T.bTop}</button><button class="lnk seeall" data-short>${T.bLess}</button></div>`;
+}
+async function wireBoard(host,tab,myPts,full){
+  host.dataset.tab=tab;const B=await getBoard(tab,myPts);if(host.dataset.tab!==tab)return;
+  host.innerHTML=full?boardFull(tab,B):boardBody(tab,B);
   host.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>wireBoard(host,b.dataset.t,myPts,full));
   host.querySelectorAll("[data-full]").forEach(b=>b.onclick=()=>wireBoard(host,tab,myPts,true));
   host.querySelectorAll("[data-top]").forEach(b=>b.onclick=()=>{ // remontée animée en 0,7 s, quelle que soit la distance
     const ol=host.querySelector("#bfull"),y0=ol.scrollTop,t0=performance.now(),D=700,ease=t=>1-Math.pow(1-t,3);
     const step=now=>{const t=Math.min(1,(now-t0)/D);ol.scrollTop=y0*(1-ease(t));if(t<1)requestAnimationFrame(step)};requestAnimationFrame(step)});
   host.querySelectorAll("[data-short]").forEach(b=>b.onclick=()=>wireBoard(host,tab,myPts,false));
-  if(!full){const sh=host.querySelector("#bshort");if(sh){ // faire défiler sur le classement réduit l'ouvre en entier (Gilles, 17/11)
+  if(!full){const sh=host.querySelector("#bshort");if(sh&&host.querySelector("[data-full]")){ // faire défiler sur le classement réduit l'ouvre en entier
     let y0=null,done=false;const open=()=>{if(done)return;done=true;wireBoard(host,tab,myPts,true)};
     sh.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>4){e.preventDefault();open()}},{passive:false});
     sh.addEventListener("touchstart",e=>{y0=e.touches[0].clientY},{passive:true});
@@ -974,7 +981,7 @@ function homePlayed(g){
   const P=PTXT[LANG||"fr"],nm=pseudoGet()||"Gilles",nq=nextQuiz(0);
   const hi=P.hiName(`<span class="pname" style="font:inherit;color:var(--magenta)">${hesc(nm)}</span>`);
   $("#stage").innerHTML=`<section class="card boards played"><h2 class="q">${hi}</h2><p class="hint">${P.done(g.score)}</p>
-    <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div>${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}<p class="hint" id="cd"></p><p class="hint demo">${T.bDemo}</p></section>`;
+    <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div>${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}<p class="hint" id="cd"></p>${JOUEUR?"":`<p class="hint demo">${T.bDemo}</p>`}</section>`;
   wireBoard($("#hb"),"day",g.score,false);$("#lbTop").hidden=true; // on est déjà sur le classement
   if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
   const t=new Date(),m=new Date(t);m.setHours(24,0,0,0);$("#cd").textContent=T.newIn(Math.floor((m-t)/36e5),Math.floor((m-t)%36e5/6e4));
@@ -983,7 +990,7 @@ function showBoards(tab,myPts,back){
   $("#stage").innerHTML=`<section class="card boards"><h2 class="q">🏆 ${T.boards}</h2>
     <div id="hb"></div>
     <div id="bpseudo">${pseudoGet()?`<button class="lnk" id="pchg" style="background:none;border:none;text-decoration:underline;cursor:pointer;color:var(--ink);margin-top:6px">${PTXT[LANG||"fr"].change}</button>`:""}</div>
-    <p class="hint demo">${T.bDemo}</p>
+    ${JOUEUR?"":`<p class="hint demo">${T.bDemo}</p>`}
     <button class="btn ghost" id="bk">${T.bBack}</button></section>`;
   if(!pseudoGet())pseudoBlock($("#bpseudo"),()=>showBoards(tab,myPts,back));
   else $("#pchg").onclick=()=>{pseudoSet("");showBoards(tab,myPts,back)};
