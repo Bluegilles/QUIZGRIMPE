@@ -316,7 +316,8 @@ async function geoQuestion(q,host,finish){
   let feats;try{feats=await geoLoad()}catch(e){host.innerHTML=`<p class="hint">${T.mapFail}</p>`;return}
   if(typeof d3==="undefined"){host.innerHTML=`<p class="hint">${T.mapFail}</p>`;return}
   const W=600,H=440,isPoint=q.mode==="point",target=GEO_ISO[isPoint?q.carte:q.pays];
-  const tf=feats.find(f=>f.id===target),box=GEO_BOX[isPoint?q.carte:q.continent];
+  const tf=feats.find(f=>f.id===target),box0=GEO_BOX[isPoint?q.carte:q.continent],dz=q.dezoom||1;
+  const box=box0&&dz!==1?(()=>{const cx=(box0[0]+box0[2])/2,cy=(box0[1]+box0[3])/2,hx=(box0[2]-box0[0])*dz/2,hy=(box0[3]-box0[1])*dz/2;return[cx-hx,cy-hy,cx+hx,cy+hy]})():box0;
   const proj=d3.geoMercator();
   const fitObj=box?{type:"MultiPoint",coordinates:[[box[0],box[1]],[box[2],box[3]],[box[0],box[3]],[box[2],box[1]]]}:tf;
   proj.fitExtent([[12,12],[W-12,H-12]],fitObj);
@@ -772,7 +773,7 @@ function done(ok,score,extra,noWhy){
   results.push({ok,pts:Math.round(score*100)});rope();
   if(qs[idx].img_full){const im=document.querySelector("#stage .qimg");if(im)im.src=qs[idx].img_full}
   const txt=[extra,noWhy?"":qs[idx].why].filter(Boolean).join(" ");
-  $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/(https?:\/\/[^\s<"]+[^\s<".,)])/g,u=>`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?"Voir la vidéo":"En savoir plus"}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
+  $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<"]+[^\s<".,)])/g,(m,lb,lu,u)=>lb?`<a href="${lu}" target="_blank" rel="noopener">${lb}</a>`:`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?"Voir la vidéo":"En savoir plus"}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
   if(qs[idx].img_after){const b=$("#nxt");b.insertAdjacentHTML("beforebegin",`<img class="qimg" src="${qs[idx].img_after}" alt="">`)}
   const tNxt=performance.now();$("#nxt").onclick=()=>{if(performance.now()-tNxt<300)return;idx++;render()};$("#nxt").focus();
 }
@@ -1054,14 +1055,15 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 const GRACE={tf:6,map:6,choice:8,odd:8,slider:8,range:8,text:10,multi:12,pairs:12,order:12,letters:15,motus:20,clues:20};
 const SPD_PER_S=.01,SPD_FLOOR=.8;
 let qStart=0,spdTimer=null;
-const spdFactor=q=>{const g=GRACE[q.type];if(!g||!qStart)return 1;const t=(performance.now()-qStart)/1000;return Math.max(SPD_FLOOR,1-SPD_PER_S*Math.max(0,t-g))};
+const graceOf=q=>{const g=GRACE[q.type];return g&&q.type==="pairs"&&q.left?Math.max(g,g+3*(q.left.length-4)):g};
+const spdFactor=q=>{const g=graceOf(q);if(!g||!qStart)return 1;const t=(performance.now()-qStart)/1000;return Math.max(SPD_FLOOR,1-SPD_PER_S*Math.max(0,t-g))};
 const _render=render;
 render=function(){
   clearInterval(spdTimer);qStart=0;_render();
   const q=qs[idx];if(!q||idx>=qs.length)return;
   const h=document.querySelector("#stage .q");if(!h)return;
   if(!GRACE[q.type])return; // révélation : déjà chronométrée
-  const g=GRACE[q.type],tot=g+(1-SPD_FLOOR)/SPD_PER_S; // une seule barre : grâce puis perte jusqu'au plancher
+  const g=graceOf(q),tot=g+(1-SPD_FLOOR)/SPD_PER_S; // une seule barre : grâce puis perte jusqu'au plancher
   h.insertAdjacentHTML("afterend",`<div class="spd" id="spd"><b><i></i><u style="left:${100*(1-g/tot)}%"></u></b><span>100 %</span></div>`);
   const go=()=>{qStart=performance.now();spdTimer=setInterval(()=>{const el=$("#spd");if(!el){clearInterval(spdTimer);return}
     const f=spdFactor(q),t=(performance.now()-qStart)/1000;
