@@ -1,3 +1,4 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
 <title>Le Quiz de la Grimpe</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -498,7 +499,9 @@ const FORMATS=["choice","multi","tf","odd","map","slider","range","order","pairs
 const LABEL={choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre"};
 
 // ================= Rotation quotidienne =================
-let dayOffset=0, mode="bank", BANKQ=null;
+const JOUEUR=true; // true sur le site public (build_site.py) : vue joueur seule, quiz programmés seulement
+let dayOffset=0, mode=JOUEUR?"daily":"bank", BANKQ=null, PROG=null; // PROG : {"2026-11-23":[questions…]}
+function progDecode(o){const r={};for(const[k,v]of Object.entries(o||{}))try{r[k]=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(v),c=>c.charCodeAt(0))))}catch(e){}return r}
 const FAMS=["Outdoor","Compétition","Athlètes","Cotations"];
 function bankQuiz(){
   // Une question par famille + une libre, 5 formats différents, difficulté croissante
@@ -519,6 +522,7 @@ function dayNum(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.get
 function rng(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
 function buildQuiz(){
   if(mode==="bank"&&BANKQ)return bankQuiz();
+  if(mode==="daily"&&(PROG||JOUEUR)){const L=PROG&&PROG[ymd(currentDate())];return L?L.map(q=>({...mixOpts(q),type:q.format,q:JOUEUR?q.q:q.q+` <small style="color:var(--muted);font-size:.7em">n° ${q.num}</small>`})):[]}
   const n=dayNum(currentDate()), r=rng(n);
   let fmts=[...FORMATS];
   if(mode==="daily"){for(let i=fmts.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[fmts[i],fmts[j]]=[fmts[j],fmts[i]]} fmts=fmts.slice(0,5)}
@@ -565,11 +569,12 @@ function start(){
   stopTimer();$("#lbTop").hidden=false;
   const d=currentDate();
   $("#dlabel").textContent=d.toLocaleDateString(T.loc,{weekday:"short",day:"numeric",month:"long"});
-  $("#next").disabled=dayOffset>=0;
+  $("#next").disabled=JOUEUR&&dayOffset>=0;
   $("#mDaily").setAttribute("aria-pressed",mode==="daily");$("#mAll").setAttribute("aria-pressed",mode==="all");$("#mBank").setAttribute("aria-pressed",mode==="bank");
   if(mode==="bank")$("#dlabel").textContent=T.bankLabel;
   qs=buildQuiz();idx=0;results=[];
   if(mode==="all"){render();return}
+  if(mode==="daily"&&!qs.length&&LANG){noQuiz();return}
   if(!LANG){
     $("#stage").innerHTML=`<section class="card welcome langpick"><h2 class="q">Choose your language</h2><div class="langlist">${LANGS.map(l=>`<button data-l="${l}"><span class="fl">${FLAG[l]}</span>${I18N[l].name}<span class="ar">›</span></button>`).join("")}</div></section>`;
     document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{setLang(b.dataset.l);start()});return;
@@ -802,10 +807,10 @@ const PSEUDO={
   w:[["Regleta","f"],["Placa","f"],["Arista","f"],["Fisura","f"],["Pinza","f"],["Romo","m"],["Lance","m"],["Talonaje","m"],["Magnesio","m"],["Desplome","m"],["Crux","m"],["Flash","m"],["Encadene","m"]],
   a:[["Dorado","Dorada"],["Salvaje","Salvaje"],["Loco","Loca"],["Pegajoso","Pegajosa"],["Volador","Voladora"],["Astuto","Astuta"],["Zen","Zen"],["Cósmico","Cósmica"],["Ligero","Ligera"],["Mágico","Mágica"]],order:"na"}};
 const PTXT={
- fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
- en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
- de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
- es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
+ fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",noQuiz:"Pas de quiz aujourd’hui 🧗",nextOn:d=>`Prochain quiz : ${d}.`,done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
+ en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",noQuiz:"No quiz today 🧗",nextOn:d=>`Next quiz: ${d}.`,done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
+ de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",noQuiz:"Heute kein Quiz 🧗",nextOn:d=>`Nächstes Quiz: ${d}.`,done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
+ es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",noQuiz:"Hoy no hay quiz 🧗",nextOn:d=>`Próximo quiz: ${d}.`,done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
 const PBAD=["con","conne","pute","merde","nazi","fuck","shit","bitch","arsch","puta","mierda","nique","salope","enculé","hitler"];
 const prnd=a=>a[Math.floor(Math.random()*a.length)];
 let pForm=Math.random()<.5?0:1;
@@ -859,11 +864,11 @@ function end(noRec){
     <p class="verdict ok endmsg">${verdict}</p><div id="pseudohost"></div>
     <div class="shares"><button class="btn" id="ig">${T.shareIG}</button><a class="btn" id="wa" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener">${T.shareWA}</a><button class="btn ghost" id="cp">${T.copy}</button></div>
     <p class="hint" id="igmsg" hidden></p><img id="igimg" alt="${T.storyAlt}" hidden>
-    <button class="btn ghost" id="re">${nq.label}</button><button class="btn ghost" id="lb">🏆 ${T.boards}</button>${streak>=2?`<p class="streak">${T.streak(streak)}</p>`:""}<p class="hint" id="cd"></p></section>`;
+    ${nq?`<button class="btn ghost" id="re">${nq.label}</button>`:""}<button class="btn ghost" id="lb">🏆 ${T.boards}</button>${streak>=2?`<p class="streak">${T.streak(streak)}</p>`:""}<p class="hint" id="cd"></p></section>`;
   if(!pseudoGet()&&mode!=="all")pseudoBlock($("#pseudohost"));
   $("#ig").onclick=()=>shareStory({pts,max,n,total:qs.length,results,dtxt});
   $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(share);$("#cp").textContent=T.copied}catch{$("#cp").textContent=T.copyFail}};
-  $("#re").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
+  if(nq)$("#re").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
   $("#lb").onclick=()=>showBoards("day",pts,()=>end(true));
   const t=new Date(),m=new Date(t);m.setHours(24,0,0,0);
   if(mode!=="bank")$("#cd").textContent=T.newIn(Math.floor((m-t)/36e5),Math.floor((m-t)%36e5/6e4));
@@ -948,17 +953,30 @@ function unplayedBefore(off){ // décalage (en jours) du quiz non joué le plus 
 }
 function nextQuiz(from){ // la veille si elle n'est pas jouée, sinon un jour non joué tiré au hasard (60 derniers jours)
   const H=histLoad(),played=k=>{const d=new Date();d.setDate(d.getDate()+k);return H.some(h=>h.quiz===ymd(d))};
+  if(PROG||JOUEUR){ // seulement les jours programmés, avant le jour « from »
+    const has=k=>{const d=new Date();d.setDate(d.getDate()+k);return !!(PROG&&PROG[ymd(d)])};
+    if(has(from-1)&&!played(from-1))return{k:from-1,label:T.yesterday};
+    const free=[];for(let k=from-1;k>=from-60;k--)if(has(k)&&!played(k))free.push(k);
+    return free.length?{k:free[Math.floor(Math.random()*free.length)],label:T.randomQuiz}:null;
+  }
   if(!played(from-1))return{k:from-1,label:T.yesterday};
   const free=[];for(let k=from-2;k>=from-60;k--)if(!played(k))free.push(k);
   return{k:free.length?free[Math.floor(Math.random()*free.length)]:from-1,label:T.randomQuiz};
+}
+function noQuiz(){ // pas de quiz ce jour-là (week-end, avant la première semaine) : le prochain, et un quiz passé non joué
+  const P=PTXT[LANG||"fr"],nq=nextQuiz(dayOffset);let nx=null;
+  if(PROG){const t=ymd(currentDate());nx=Object.keys(PROG).sort().find(k=>k>t)}
+  const nd=nx?new Date(nx+"T12:00:00").toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):"";
+  $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}</section>`;
+  if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
 }
 function homePlayed(g){
   const P=PTXT[LANG||"fr"],nm=pseudoGet()||"Gilles",nq=nextQuiz(0);
   const hi=P.hiName(`<span class="pname" style="font:inherit;color:var(--magenta)">${hesc(nm)}</span>`);
   $("#stage").innerHTML=`<section class="card boards played"><h2 class="q">${hi}</h2><p class="hint">${P.done(g.score)}</p>
-    <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div><button class="btn" id="yd">${nq.label}</button><p class="hint" id="cd"></p><p class="hint demo">${T.bDemo}</p></section>`;
+    <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div>${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}<p class="hint" id="cd"></p><p class="hint demo">${T.bDemo}</p></section>`;
   wireBoard($("#hb"),"day",g.score,false);$("#lbTop").hidden=true; // on est déjà sur le classement
-  $("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
+  if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
   const t=new Date(),m=new Date(t);m.setHours(24,0,0,0);$("#cd").textContent=T.newIn(Math.floor((m-t)/36e5),Math.floor((m-t)%36e5/6e4));
 }
 function showBoards(tab,myPts,back){
@@ -978,16 +996,19 @@ $("#langmenu").onclick=e=>{const b=e.target.closest("[data-m]");if(!b)return;$("
 document.addEventListener("click",()=>{const m=$("#langmenu");if(m&&!m.hidden){m.hidden=true;$("#lang").setAttribute("aria-expanded","false")}});
 applyLangStatic();
 $("#prev").onclick=()=>{dayOffset--;start()};
-$("#next").onclick=()=>{if(dayOffset<0){dayOffset++;start()}};
+$("#next").onclick=()=>{if(!JOUEUR||dayOffset<0){dayOffset++;start()}};
 $("#mDaily").onclick=()=>{mode="daily";start()};
 $("#mAll").onclick=()=>{mode="all";start()};
 $("#mBank").onclick=()=>{mode="bank";start()};
-let VJ=false;try{VJ=localStorage.getItem("qg-vue")==="joueur"}catch(e){}
+let VJ=JOUEUR;if(!JOUEUR)try{VJ=localStorage.getItem("qg-vue")==="joueur"}catch(e){}
 function vjApply(){document.body.classList.toggle("joueur",VJ);$("#vj").textContent=VJ?"🛠 Revenir à ma vue (Gilles)":"👁 Voir la vue joueur";if(VJ){mode="daily";dayOffset=0}}
 vjApply();
 $("#vpl").onclick=()=>{homePlayed({score:380});scrollTo(0,0)};
 $("#vj").onclick=()=>{VJ=!VJ;try{localStorage.setItem("qg-vue",VJ?"joueur":"gilles")}catch(e){}vjApply();start();scrollTo(0,0)};
-fetch("questions.json").then(r=>r.json()).then(d=>{BANKQ=d;start()}).catch(()=>{mode="daily";start()});
+if(JOUEUR){$("#vj").remove();$("#vpl").remove()}
+const progLoad=fetch("programme.json").then(r=>r.ok?r.json():{}).then(o=>{PROG=progDecode(o);if(!Object.keys(PROG).length&&!JOUEUR)PROG=null}).catch(()=>{});
+if(JOUEUR)progLoad.then(start);
+else Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).then(d=>{BANKQ=d})]).then(start).catch(()=>{mode="daily";start()});
 </script>
 
 <style>
@@ -1026,3 +1047,5 @@ done=function(ok,score,extra,noWhy){
   _done(ok,Math.round(score*f*100)/100,extra,noWhy);
 };
 </script>
+
+</html>
