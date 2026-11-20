@@ -575,7 +575,9 @@ function baseOffset(){ // le « quiz du moment » : aujourd'hui, ou le dernier q
   return 0;
 }
 const dayName=()=>currentDate().toLocaleDateString(T.loc,{weekday:"long"});
-function start(){
+let hasardK=null; // jour tiré au hasard (pour le libellé « Un quiz au hasard »)
+function quizLabel(){const P=PTXT[LANG||"fr"];return dayOffset===0?P.daily:dayOffset===hasardK?P.hasardQ:dayOffset===-1?P.veilleQ:P.dayQuiz(dayName())}
+function start(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
   stopTimer();$("#lbTop").hidden=false;
   const d=currentDate();
   $("#dlabel").textContent=d.toLocaleDateString(T.loc,{weekday:"short",day:"numeric",month:"long"});
@@ -599,7 +601,7 @@ function start(){
     $("#stage").innerHTML=`<section class="card welcome first"><h2 class="q">${P.welcome1}</h2><div id="onb"></div><button class="btn" id="go1">${P.play}</button></section>`;
     form=blazeForm($("#onb"),"");$("#onb .askq").classList.add("sr");
   }else{
-    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${dayOffset!==0?P.dayQuiz(dayName()):P.daily}</button><button class="chg" id="chg">${P.chg}</button></section>`;
+    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${quizLabel()}</button><button class="chg" id="chg">${P.chg}</button></section>`;
     $("#chg").onclick=()=>{form=blazeForm($("#onb"),nm);$("#chg").remove()};
     $("#go1").focus();
   }
@@ -609,7 +611,7 @@ function rope(){$("#rope").innerHTML=qs.map((_,i)=>{const c=i<results.length?(re
 function stopTimer(){if(timer){cancelAnimationFrame(timer);timer=null}}
 const optBtns=(opts,attr="i")=>opts.map((o,i)=>`<button class="opt" data-${attr}="${i}">${String(o).replace(/\*([^*]+)\*/g,"<i>$1</i>")}</button>`).join("");
 
-function render(){
+function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
   rope();
   if(idx>=qs.length)return end();
   const q=qs[idx],st=$("#stage");
@@ -817,10 +819,10 @@ const PSEUDO={
   w:[["Regleta","f"],["Placa","f"],["Arista","f"],["Fisura","f"],["Pinza","f"],["Romo","m"],["Lance","m"],["Talonaje","m"],["Magnesio","m"],["Desplome","m"],["Crux","m"],["Flash","m"],["Encadene","m"]],
   a:[["Dorado","Dorada"],["Salvaje","Salvaje"],["Loco","Loca"],["Pegajoso","Pegajosa"],["Volador","Voladora"],["Astuto","Astuta"],["Zen","Zen"],["Cósmico","Cósmica"],["Ligero","Ligera"],["Mágico","Mágica"]],order:"na"}};
 const PTXT={
- fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",playDay:w=>`Jouer au quiz de ${w}`,dayQuiz:w=>`Le quiz de ${w}`,doneDay:(w,n)=>`Tu as déjà fait le quiz de ${w} : ${n} pts.`,noQuiz:"Pas de quiz aujourd’hui 🧗",nextOn:d=>`Prochain quiz : ${d}.`,done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
- en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",playDay:w=>`Play ${w}’s quiz`,dayQuiz:w=>`${w}’s quiz`,doneDay:(w,n)=>`You’ve already played ${w}’s quiz: ${n} pts.`,noQuiz:"No quiz today 🧗",nextOn:d=>`Next quiz: ${d}.`,done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
- de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",playDay:w=>`Das Quiz vom ${w} spielen`,dayQuiz:w=>`Das Quiz vom ${w}`,doneDay:(w,n)=>`Du hast das Quiz vom ${w} schon gespielt: ${n} Pkt.`,noQuiz:"Heute kein Quiz 🧗",nextOn:d=>`Nächstes Quiz: ${d}.`,done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
- es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",playDay:w=>`Jugar el quiz del ${w}`,dayQuiz:w=>`El quiz del ${w}`,doneDay:(w,n)=>`Ya jugaste el quiz del ${w}: ${n} pts.`,noQuiz:"Hoy no hay quiz 🧗",nextOn:d=>`Próximo quiz: ${d}.`,done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
+ fr:{eyebrow:"🏆 Classement",title:"Choisis ton pseudo",sub:"Pour apparaître dans le classement. Garde celui-ci, tire-en un autre ou écris le tien.",dice:"Tirer un autre pseudo",ok:"C’est mon pseudo",later:"Plus tard",bad:"Choisis un autre pseudo (3 à 24 caractères, sans gros mots).",hi:n=>`Bienvenue dans le classement, ${n} !`,note:"Pas d’e-mail, pas de compte : ton pseudo reste sur cet appareil.",change:"Changer de pseudo",hiName:n=>`Salut ${n} !`,hiBoss:"Salut boss !",playDay:w=>`Jouer au quiz de ${w}`,dayQuiz:w=>`Le quiz de ${w}`,veilleQ:"Le quiz de la veille",hasardQ:"Un quiz au hasard",doneDay:(w,n)=>`Tu as déjà fait le quiz de ${w} : ${n} pts.`,noQuiz:"Pas de quiz aujourd’hui 🧗",nextOn:d=>`Prochain quiz : ${d}.`,done:n=>`Tu as déjà fait le quiz du jour : ${n} pts.`,again:"C’est parti pour un nouveau quiz",daily:"Le quiz du jour",intro:"Bienvenue dans le quiz.",ask:n=>`Ça te dérange si je t’appelle <span class="pname">${n}</span> ?`,yes:"Non, vas-y !",orType:"Ou alors, tape ton pseudo ici :",typeOk:"OK",blaze:"C’est quoi ton blaze ?",chg:"Changer mon pseudo",welcome1:"Bienvenue boss, c’est quoi ton blaze ?",play:"C’est parti !"},
+ en:{eyebrow:"🏆 Leaderboard",title:"Pick your nickname",sub:"To appear on the leaderboard. Keep this one, roll another or type your own.",dice:"Roll another nickname",ok:"That’s my name",later:"Later",bad:"Pick another nickname (3 to 24 characters, no swear words).",hi:n=>`Welcome to the leaderboard, ${n}!`,note:"No email, no account: your nickname stays on this device.",change:"Change nickname",hiName:n=>`Hey ${n}!`,hiBoss:"Hey boss!",playDay:w=>`Play ${w}’s quiz`,dayQuiz:w=>`${w}’s quiz`,veilleQ:"Yesterday’s quiz",hasardQ:"A random quiz",doneDay:(w,n)=>`You’ve already played ${w}’s quiz: ${n} pts.`,noQuiz:"No quiz today 🧗",nextOn:d=>`Next quiz: ${d}.`,done:n=>`You’ve already played today’s quiz: ${n} pts.`,again:"Ready for a new quiz",daily:"Today’s quiz",intro:"Welcome to the quiz.",ask:n=>`Mind if I call you <span class="pname">${n}</span>?`,yes:"Go for it!",orType:"Or type your nickname here:",typeOk:"OK",blaze:"What’s your nickname?",chg:"Change my nickname",welcome1:"Welcome boss, what’s your nickname?",play:"Let’s play!"},
+ de:{eyebrow:"🏆 Rangliste",title:"Wähle deinen Spitznamen",sub:"Um in der Rangliste zu erscheinen. Behalte ihn, würfle neu oder schreib deinen eigenen.",dice:"Neuen Namen würfeln",ok:"Das ist mein Name",later:"Später",bad:"Wähle einen anderen Namen (3 bis 24 Zeichen, keine Schimpfwörter).",hi:n=>`Willkommen in der Rangliste, ${n}!`,note:"Keine E-Mail, kein Konto: dein Name bleibt auf diesem Gerät.",change:"Namen ändern",hiName:n=>`Hallo ${n}!`,hiBoss:"Hallo Boss!",playDay:w=>`Das Quiz vom ${w} spielen`,dayQuiz:w=>`Das Quiz vom ${w}`,veilleQ:"Das Quiz von gestern",hasardQ:"Ein zufälliges Quiz",doneDay:(w,n)=>`Du hast das Quiz vom ${w} schon gespielt: ${n} Pkt.`,noQuiz:"Heute kein Quiz 🧗",nextOn:d=>`Nächstes Quiz: ${d}.`,done:n=>`Du hast das Quiz des Tages schon gespielt: ${n} Pkt.`,again:"Auf geht’s zu einem neuen Quiz",daily:"Das Quiz des Tages",intro:"Willkommen beim Quiz.",ask:n=>`Darf ich dich <span class="pname">${n}</span> nennen?`,yes:"Klar, gern!",orType:"Oder tipp hier deinen Namen ein:",typeOk:"OK",blaze:"Wie lautet dein Spitzname?",chg:"Meinen Namen ändern",welcome1:"Willkommen, Boss! Wie lautet dein Spitzname?",play:"Los geht’s!"},
+ es:{eyebrow:"🏆 Clasificación",title:"Elige tu apodo",sub:"Para aparecer en la clasificación. Quédate con este, tira otro o escribe el tuyo.",dice:"Tirar otro apodo",ok:"Es mi apodo",later:"Más tarde",bad:"Elige otro apodo (de 3 a 24 caracteres, sin palabrotas).",hi:n=>`¡Bienvenido a la clasificación, ${n}!`,note:"Sin correo ni cuenta: tu apodo se queda en este dispositivo.",change:"Cambiar de apodo",hiName:n=>`¡Hola, ${n}!`,hiBoss:"¡Hola, jefe!",playDay:w=>`Jugar el quiz del ${w}`,dayQuiz:w=>`El quiz del ${w}`,veilleQ:"El quiz de ayer",hasardQ:"Un quiz al azar",doneDay:(w,n)=>`Ya jugaste el quiz del ${w}: ${n} pts.`,noQuiz:"Hoy no hay quiz 🧗",nextOn:d=>`Próximo quiz: ${d}.`,done:n=>`Ya jugaste el quiz del día: ${n} pts.`,again:"Vamos con un nuevo quiz",daily:"El quiz del día",intro:"Bienvenido al quiz.",ask:n=>`¿Te importa si te llamo <span class="pname">${n}</span>?`,yes:"¡Adelante!",orType:"O escribe tu apodo aquí:",typeOk:"OK",blaze:"¿Cuál es tu apodo?",chg:"Cambiar mi apodo",welcome1:"¡Bienvenido, jefe! ¿Cuál es tu apodo?",play:"¡Vamos!"}};
 const PBAD=["con","conne","pute","merde","nazi","fuck","shit","bitch","arsch","puta","mierda","nique","salope","enculé","hitler"];
 const prnd=a=>a[Math.floor(Math.random()*a.length)];
 let pForm=Math.random()<.5?0:1;
@@ -878,7 +880,7 @@ function end(noRec){
   if(!pseudoGet()&&mode!=="all")pseudoBlock($("#pseudohost"));
   $("#ig").onclick=()=>shareStory({pts,max,n,total:qs.length,results,dtxt});
   $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(share);$("#cp").textContent=T.copied}catch{$("#cp").textContent=T.copyFail}};
-  if(nq)$("#re").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
+  if(nq)$("#re").onclick=()=>{mode="daily";dayOffset=nq.k;hasardK=nq.label===T.randomQuiz?nq.k:null;qs=buildQuiz();idx=0;results=[];render()};
   $("#lb").onclick=()=>showBoards("day",pts,()=>end(true));
   const t=new Date(),m=new Date(t);m.setHours(24,0,0,0);
   if(mode!=="bank")$("#cd").textContent=T.newIn(Math.floor((m-t)/36e5),Math.floor((m-t)%36e5/6e4));
@@ -989,7 +991,7 @@ function noQuiz(){ // pas de quiz ce jour-là : « Jouer au quiz de vendredi » 
   if(!btn){const nq=nextQuiz(0);if(nq)btn={k:nq.k,label:T.randomQuiz}}
   const nd=nx?new Date(nx+"T12:00:00").toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):"";
   $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${btn?`<button class="btn" id="yd">${btn.label}</button>`:""}</section>`;
-  if(btn)$("#yd").onclick=()=>{mode="daily";dayOffset=btn.k;if(pseudoGet()){qs=buildQuiz();idx=0;results=[];render()}else start()};
+  if(btn)$("#yd").onclick=()=>{mode="daily";dayOffset=btn.k;hasardK=btn.label===T.randomQuiz?btn.k:null;if(pseudoGet()){qs=buildQuiz();idx=0;results=[];render()}else start()};
 }
 function homePlayed(g){
   const P=PTXT[LANG||"fr"],nm=pseudoGet()||"Gilles",nq=nextQuiz(dayOffset);
@@ -997,7 +999,7 @@ function homePlayed(g){
   $("#stage").innerHTML=`<section class="card boards played"><h2 class="q">${hi}</h2><p class="hint">${dayOffset<0?P.doneDay(dayName(),g.score):P.done(g.score)}</p>
     <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div>${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}<p class="hint" id="cd"></p>${JOUEUR?"":`<p class="hint demo">${T.bDemo}</p>`}</section>`;
   wireBoard($("#hb"),"day",g.score,false);$("#lbTop").hidden=true; // on est déjà sur le classement
-  if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;qs=buildQuiz();idx=0;results=[];render()};
+  if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;hasardK=nq.label===T.randomQuiz?nq.k:null;qs=buildQuiz();idx=0;results=[];render()};
   const t=new Date(),m=new Date(t);m.setHours(24,0,0,0);
   const nx=PROG?Object.keys(PROG).sort().find(k=>k>ymd(t)):null; // prochain quiz : demain → compte à rebours, plus tard → sa date
   $("#cd").textContent=!PROG||nx===ymd(m)?T.newIn(Math.floor((m-t)/36e5),Math.floor((m-t)%36e5/6e4)):nx?P.nextOn(new Date(nx+"T12:00:00").toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"})):"";
@@ -1077,6 +1079,12 @@ done=function(ok,score,extra,noWhy){
   const el=$("#spd");if(el)el.remove();
   _done(ok,Math.round(score*f*100)/100,extra,noWhy);
 };
+</script>
+<script>
+// Typographie française : espace insécable avant ? ! : ; » et après « (dans tous les textes affichés)
+(function(){const re=/[  ]([?!:;»])/g,re2=/«[  ]/g;
+function fix(root){if(!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){const p=n.parentNode;if(p&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName))continue;const v=n.nodeValue,t=v.replace(re," $1").replace(re2,"« ");if(t!==v)n.nodeValue=t}}
+fix(document.body);new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData")fix(m.target.parentNode);else m.addedNodes.forEach(x=>{if(x.nodeType===3)fix(x.parentNode);else if(x.nodeType===1)fix(x)})}}).observe(document.body,{childList:true,subtree:true,characterData:true});})();
 </script>
 
 </html>
