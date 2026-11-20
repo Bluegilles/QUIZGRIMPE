@@ -658,8 +658,8 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const w=$("#spw"),im=w.querySelector("img");let over=false;
     const place=(el,x,y)=>{el.style.left=x*100+"%";el.style.top=y*100+"%";el.hidden=false};
     w.onclick=e=>{if(over)return;const r=im.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(x<0||x>1||y<0||y>1)return;over=true;
-      const s=q.spot,ok=Math.hypot((x-s.x)*r.width,(y-s.y)*r.height)<=s.r*r.width*1.15,g=$("#goal");
-      g.style.width=(s.r*200)+"%";place(g,s.x,s.y);place($("#tap"),x,y);if(ok)$("#tap").classList.add("ok");$("#sph").hidden=true;
+      const s=q.spot,ok=s.ry?Math.hypot((x-s.x)/s.r,(y-s.y)/s.ry)<=1.15:Math.hypot((x-s.x)*r.width,(y-s.y)*r.height)<=s.r*r.width*1.15,g=$("#goal");
+      g.style.width=(s.r*200)+"%";if(s.ry){g.style.aspectRatio="auto";g.style.height=(s.ry*200)+"%"}place(g,s.x,s.y);place($("#tap"),x,y);if(ok)$("#tap").classList.add("ok");$("#sph").hidden=true;
       done(ok,ok?1:0,ok?"":T.spotMiss)}
   }
   if(q.type==="clues"){
