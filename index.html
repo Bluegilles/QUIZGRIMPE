@@ -921,7 +921,7 @@ async function getBoard(tab,myPts){
   if(!JOUEUR)return{rows:demoRows(tab,myPts),demo:true};
   if(LB[tab])return LB[tab];
   try{const[debut,fin]=periode(tab);const r=await fetch(SB.url+"/rest/v1/rpc/classement",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({debut,fin,moi:devId()})});
-    if(!r.ok)throw 0;const rows=await r.json();return LB[tab]={rows,demo:false}}
+    if(!r.ok)throw 0;const rows=(await r.json()).map(o=>({...o,moi:!!o.est_moi}));return LB[tab]={rows,demo:false}}
   catch(e){return{rows:[],demo:false,err:true}}
 }
 const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${o.moi?hesc(o.pseudo)+" <small>("+T.bYou+")</small>":hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;

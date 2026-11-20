@@ -23,13 +23,13 @@ grant insert on public.scores to anon;
 
 -- Classement d'une période : rang, pseudo, points, nombre de quiz, et « moi » pour repérer le joueur.
 create or replace function public.classement(debut date, fin date, moi uuid default null)
-returns table (rang bigint, pseudo text, points bigint, parties bigint, moi boolean)
+returns table (rang bigint, pseudo text, points bigint, parties bigint, est_moi boolean)
 language sql stable security definer set search_path = public as $$
   select rank() over (order by sum(s.score) desc)          as rang,
          (array_agg(s.pseudo order by s.created_at desc))[1] as pseudo,
          sum(s.score)::bigint                                as points,
          count(*)                                            as parties,
-         coalesce(s.device = moi, false)                     as moi
+         coalesce(s.device = moi, false)                     as est_moi
   from public.scores s
   where s.quiz between debut and fin
   group by s.device
