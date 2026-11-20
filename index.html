@@ -54,6 +54,9 @@ h1 .hl{color:var(--magenta);background:linear-gradient(transparent 58%,var(--yel
 .photo{aspect-ratio:4/3;max-width:100%;border-radius:10px;background:var(--cyan-tint);color:var(--magenta);display:grid;place-items:center;position:relative;overflow:hidden}
 .photo > svg{width:46%;height:auto}
 .spotw{position:relative;margin:6px 0 10px;border-radius:10px;overflow:hidden;cursor:pointer;line-height:0;touch-action:manipulation}
+.spotw.win::after,.spotw.lose::after{content:"";position:absolute;inset:0;border:6px solid #00C5E6;border-radius:10px;pointer-events:none;z-index:3;animation:spfl .45s ease-out}
+.spotw.lose::after{border-color:#E8352B}
+@keyframes spfl{0%{opacity:0;border-width:14px}100%{opacity:1;border-width:6px}}
 .spotw img{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .spotw i{position:absolute;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
 .spotw .tap{width:30px;height:30px;border:4px solid #FFE300;background:rgba(255,227,0,.3);box-shadow:0 0 0 2px rgba(0,0,0,.35)}
@@ -666,7 +669,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const pos=e=>{const r=im.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;return x<0||x>1||y<0||y>1?null:{x,y,r}};
     if(!q.spots){
       w.onclick=e=>{if(over)return;const p=pos(e);if(!p)return;over=true;const ok=inZ(q.spot,p.x,p.y,p.r),d=dot(p.x,p.y);
-        d.classList.add(ok?"ok":"ko");if(!ok)ring(q.spot);$("#sph").hidden=true;
+        d.classList.add(ok?"ok":"ko");w.classList.add(ok?"win":"lose");if(!ok)ring(q.spot);$("#sph").hidden=true;
         done(ok,ok?1:0,ok?"":T.spotMiss)};
     }else{
       const marks=[],go=$("#go");
@@ -679,7 +682,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
         const r=im.getBoundingClientRect(),isOk=m=>q.spots.some(s=>inZ(s,m.x,m.y,r));
         marks.forEach(m=>m.el.classList.add(isOk(m)?"ok":"ko"));
         const found=q.spots.map(s=>marks.some(m=>inZ(s,m.x,m.y,r)));q.spots.forEach((s,i)=>{if(!found[i])ring(s)});
-        const good=found.filter(Boolean).length,bad=marks.filter(m=>!isOk(m)).length,ok=good===q.spots.length&&!bad;
+        const good=found.filter(Boolean).length,bad=marks.filter(m=>!isOk(m)).length,ok=good===q.spots.length&&!bad;w.classList.add(ok?"win":"lose");
         done(ok,Math.max(0,(good-bad)/q.spots.length),ok?"":T.spotMissN)};
     }
   }
