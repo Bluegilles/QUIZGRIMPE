@@ -43,7 +43,7 @@ h1 .hl{color:var(--magenta);background:linear-gradient(transparent 58%,var(--yel
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .opts.one{grid-template-columns:1fr}
 .opt{font:600 1rem var(--body);text-align:left;padding:14px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;min-height:52px;position:relative}
-.opt:hover:not(:disabled){border-color:var(--magenta)}
+@media (hover:hover){.opt:hover:not(:disabled){border-color:var(--magenta)}}
 .opt.sel{border-color:var(--magenta);background:var(--magenta-tint)}
 .opt.right{border-color:var(--cyan);background:var(--cyan-tint);text-decoration:none}
 .opt.wrong{border-color:var(--magenta);background:var(--magenta-tint);text-decoration:line-through;text-decoration-color:var(--magenta)}
@@ -868,7 +868,7 @@ function end(noRec){
   const grid=results.map(r=>r.ok?"✅":"❌").join("");
   const r5=pts*500/max,verdict=r5>=400&&r5<450?(e=>e[Math.floor(Math.random()*e.length)])(T.ends45):T.ends[r5>=500?5:r5>=450?4:r5>=300?3:r5>=200?2:r5>=100?1:0];
   const dtxt=mode==="bank"?new Date().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):currentDate().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"});
-  const share=`Quiz de la Grimpe · Bluegilles · ${dtxt}\n${grid} ${pts} / ${max}`;
+  const share=`Quiz de la Grimpe · Bluegilles · ${dtxt}\n${grid} ${pts} / ${max}\nhttps://lequizdelagrimpe.vercel.app`;
   $("#stage").innerHTML=`<section class="card end">
     <div class="endhead"><div class="score">${pts}<small> / ${max}</small></div>
     <p class="endres">${T.result(n,qs.length)}</p>
