@@ -261,7 +261,7 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
 }
 function motusGame(q,host,finish){
   const W=q.word,N=W.length,PRE=q.pre||[],T=PRE.length+(PRE.length?2:3),known=Array(N).fill(null),keyState={};
-  let rows=[...PRE],cur="",over=false,busy=false,reveals=0;
+  let rows=[...PRE],cur="",over=false,busy=false,reveals=0,tmr=null;
   if(Array.isArray(q.donnees))q.donnees.forEach(i=>known[i]=W[i]);else if(!PRE.length&&N>=7)known[0]=W[0];
   host.innerHTML=`<p class="hint">${PRE.length?`La partie est déjà commencée : lis les couleurs, puis tape un nom de ${N} lettres. <b>Il te reste ${T-PRE.length} essais.</b>`:`Tape un nom de ${N} lettres : il se valide tout seul. <b>Tu as ${T} essais.</b>${known.some(Boolean)?" Les lettres en pointillés sont données.":""}`}</p>
     <p class="mo-leg"><span class="mo-c g">A</span> bien placée <span class="mo-c y">A</span> mal placée <span class="mo-c a">A</span> absente</p>
@@ -289,10 +289,10 @@ function motusGame(q,host,finish){
       if(rows[rows.length-1]===W){over=true;draw();rev.remove();finish(true,Math.max(.1,1-.1*(mine-1)-.2*reveals),reveals?`${reveals} lettre${reveals>1?"s":""} révélée${reveals>1?"s":""}.`:"")}
       else if(rows.length===T){over=true;draw();rev.remove();finish(false,0,`C’était ${q.reponse||W}.`)}
       else draw();return}
-    if(cur.length<N&&/^[A-Z]$/.test(k)){cur+=k;draw();if(cur.length===N){busy=true;setTimeout(()=>{busy=false;press("↵")},350)}}
+    if(cur.length<N&&/^[A-Z]$/.test(k)){cur+=k;draw();if(cur.length===N){busy=true;tmr=setTimeout(()=>{busy=false;press("↵")},350)}}
   }
   const onKey=e=>{if(!host.isConnected){document.removeEventListener("keydown",onKey);return}if(over||e.target.closest&&e.target.closest("input,textarea"))return;
-    const k=e.key.toUpperCase();if(k==="BACKSPACE"){e.preventDefault();press("⌫")}else if(/^[A-Z]$/.test(k))press(k)};
+    const k=e.key.toUpperCase();if(k==="ENTER"){e.preventDefault();if(cur.length===N){clearTimeout(tmr);busy=false;press("↵")}}else if(k==="BACKSPACE"){e.preventDefault();press("⌫")}else if(/^[A-Z]$/.test(k))press(k)};
   document.addEventListener("keydown",onKey);
   draw();
 }
@@ -777,7 +777,7 @@ function done(ok,score,extra,noWhy){
   const txt=[extra,noWhy?"":qs[idx].why].filter(Boolean).join(" ");
   $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<"]+[^\s<".,)])/g,(m,lb,lu,u)=>lb?`<a href="${lu}" target="_blank" rel="noopener">${lb}</a>`:`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?"Voir la vidéo":"En savoir plus"}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
   if(qs[idx].img_after){const b=$("#nxt");b.insertAdjacentHTML("beforebegin",`<img class="qimg" src="${qs[idx].img_after}" alt="">`)}
-  const tNxt=performance.now();$("#nxt").onclick=()=>{if(performance.now()-tNxt<300)return;idx++;render()};$("#nxt").focus();
+  const tNxt=performance.now();$("#nxt").onclick=e=>{const dt=performance.now()-tNxt;if(dt<300||(e&&e.detail===0&&dt<1200))return;idx++;render()};$("#nxt").focus();
 }
 // --- Niveau (moyenne des 5 meilleurs scores sur les 10 derniers quiz) et série de jours ---
 const HKEY="qg-historique";
