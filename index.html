@@ -674,7 +674,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     if(!q.spots){
       w.onclick=e=>{if(over)return;const p=pos(e);if(!p)return;over=true;const ok=inZ(q.spot,p.x,p.y,p.r),d=dot(p.x,p.y);
         d.classList.add(ok?"ok":"ko");w.classList.add(ok?"win":"lose");if(!ok)ring(q.spot);$("#sph").hidden=true;
-        done(ok,ok?1:0,ok?"":T.spotMiss)};
+        done(ok,ok?1:0,"")};
     }else{
       const marks=[],go=$("#go");
       w.onclick=e=>{if(over||e.target.closest(".spgo"))return;const p=pos(e);if(!p)return;
@@ -687,7 +687,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
         marks.forEach(m=>m.el.classList.add(isOk(m)?"ok":"ko"));
         const found=q.spots.map(s=>marks.some(m=>inZ(s,m.x,m.y,r)));q.spots.forEach((s,i)=>{if(!found[i])ring(s)});
         const good=found.filter(Boolean).length,bad=marks.filter(m=>!isOk(m)).length,ok=good===q.spots.length&&!bad;w.classList.add(ok?"win":"lose");
-        done(ok,Math.max(0,(good-bad)/q.spots.length),ok?"":T.spotMissN)};
+        done(ok,Math.max(0,(good-bad)/q.spots.length),"")};
     }
   }
   if(q.type==="zoom"){
