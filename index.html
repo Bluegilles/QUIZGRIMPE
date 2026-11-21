@@ -690,7 +690,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     }
   }
   if(q.type==="zoom"){
-    const im=$("#zim"),bar=$("#bar"),live=$("#live"),tx=$("#ztx"),Z=q.zoom||8,S=(q.fixe_s??2)*1000,D=(q.duree||15)*1000;let t0=0,t=0,wrong=0,over=false;
+    const im=$("#zim"),bar=$("#bar"),live=$("#live"),tx=$("#ztx"),Z=q.zoom||8,S=(q.fixe_s??4)*1000,D=(q.duree||20)*1000;let t0=0,t=0,wrong=0,over=false;
     const pts=()=>Math.max(.1,1-.5*t-.2*wrong);
     const step=now=>{if(!t0)t0=now;t=Math.min(Math.max(now-t0-S,0)/D,1);const s=1+(Z-1)*Math.pow(1-t,2);im.style.transform=`scale(${s})`;
       bar.style.transform=`scaleX(${1-t})`;live.textContent=`${Math.round(pts()*100)} pts`;if(t<1&&!over)timer=requestAnimationFrame(step)};
