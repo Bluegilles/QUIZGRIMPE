@@ -1148,7 +1148,7 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 </style>
 <script>
 // ===== Bonus de rapidité (Gilles, 17/11) : temps de grâce par format, puis −1 %/s jusqu'à 80 % =====
-const GRACE={tf:6,map:6,spot:8,choice:8,odd:8,slider:8,range:8,text:10,multi:12,pairs:12,order:12,letters:15,motus:20,clues:20};
+const GRACE={tf:6,map:6,spot:8,choice:8,odd:8,slider:8,range:8,text:10,multi:12,pairs:12,order:12,letters:20,motus:20,clues:20};
 const SPD_PER_S=.01,SPD_FLOOR=.8;
 let qStart=0,spdTimer=null;
 const graceOf=q=>{const g=GRACE[q.type];if(q.type==="spot"&&q.spots)return 12;return g&&q.type==="pairs"&&q.left?Math.max(g,g+3*(q.left.length-4)):g};
