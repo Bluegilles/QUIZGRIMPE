@@ -650,6 +650,9 @@ const optBtns=(opts,attr="i")=>opts.map((o,i)=>`<button class="opt" data-${attr}
 function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
   rope();
   if(idx>=qs.length)return end();
+  if(ecOn()){const qd=ymd(currentDate()),e=ecGet();
+    if(idx===0&&!results.length&&e&&e.quiz===qd&&Array.isArray(e.results)){results=e.results.slice(0,qs.length);while(results.length<=Math.min(e.vu,qs.length-1))results.push({ok:false,pts:0});idx=results.length;rope();if(idx>=qs.length){ecSet({quiz:qd,vu:idx-1,results});return end()}}
+    ecSet({quiz:qd,vu:idx,results});}
   $("#lbTop").hidden=true;{const ls=document.querySelector(".langsel");if(ls)ls.style.display="none"}
   const q=qs[idx],st=$("#stage");
   let body="";
@@ -849,8 +852,13 @@ function mixOpts(q){ // ordre des propositions tiré au hasard à chaque partie 
   const p=[...q.opts.keys()];for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}
   return {...q,opts:p.map(i=>q.opts[i]),a:Array.isArray(q.a)?q.a.map(x=>p.indexOf(x)).sort((x,y)=>x-y):p.indexOf(q.a)};
 }
+// Partie en cours sauvegardée à chaque question : recharger la page reprend la partie, la question vue compte pour 0 (Gilles, 22/11)
+const EKEY="qg-encours";
+function ecGet(){try{return JSON.parse(localStorage.getItem(EKEY)||"null")}catch{return null}}
+function ecSet(o){try{o?localStorage.setItem(EKEY,JSON.stringify(o)):localStorage.removeItem(EKEY)}catch{}}
+const ecOn=()=>JOUEUR&&mode==="daily";
 function done(ok,score,extra,noWhy){
-  results.push({ok,pts:Math.round(score*100)});rope();
+  results.push({ok,pts:Math.round(score*100)});rope();if(ecOn())ecSet({quiz:ymd(currentDate()),vu:idx,results});
   if(qs[idx].img_full){const im=document.querySelector("#stage .qimg");if(im)im.src=qs[idx].img_full}
   const txt=[extra,noWhy?"":qs[idx].why].filter(Boolean).join(" ");
   $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<"]+[^\s<".,)])/g,(m,lb,lu,u)=>lb?`<a href="${lu}" target="_blank" rel="noopener">${lb}</a>`:`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?T.seeVideo:T.moreInfo}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
@@ -940,6 +948,7 @@ function blazeForm(host,cur){
   return{value:()=>inp.value.trim()||inp.placeholder,error:()=>{host.querySelector("#aerr").hidden=false;inp.focus()}};
 }
 function end(noRec){
+  if(ecOn()&&!noRec)ecSet(null);
   {const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
   const nq=nextQuiz(mode==="daily"?dayOffset:0);
   const n=results.filter(r=>r.ok).length,pts=results.reduce((s,r)=>s+r.pts,0),max=qs.length*100;
