@@ -1002,7 +1002,8 @@ function enClassement(quiz){ // un quiz compte pour le classement jusqu'à la so
 function sendScore(quiz,score){const d=devId(),p=pseudoGet();if(!JOUEUR||!d||!p||!enClassement(quiz))return;
   sbCall("scores",{device:d,pseudo:p,quiz,jour:ymd(new Date()),score:Math.max(0,Math.min(1000,Math.round(score)))}).then(()=>{LB={}}).catch(()=>{})}
 let LB={}; // cache des classements, vidé après chaque score envoyé
-function periode(tab){const t=new Date(),f=ymd(t),q=ymd(currentDate());if(tab==="week"){const l=new Date(q+"T12:00:00");l.setDate(l.getDate()-((l.getDay()+6)%7));return[ymd(l),f]}return tab==="day"?[q,q]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
+function boardDate(){const d=currentDate();if(dayOffset===0){const k=baseOffset();if(k)d.setDate(d.getDate()+k)}return d}
+function periode(tab){const t=new Date(),f=ymd(t),q=ymd(boardDate());if(tab==="week"){const l=new Date(q+"T12:00:00");l.setDate(l.getDate()-((l.getDay()+6)%7));return[ymd(l),f]}return tab==="day"?[q,q]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
 function demoRows(tab,myPts){ // maquette : 10 noms inventés, le joueur 143e
   const mine={day:myPts??292,week:1310,month:4120,ever:18460}[tab],R={day:143,week:176,month:212,ever:388}[tab],off=tab==="month"?2:tab==="week"?7:tab==="ever"?5:0,top=DEMO[tab],last=top[top.length-1],N=R+25,all=[...NEAR_NAMES,...DEMO_NAMES],rows=[];
   for(let r=1;r<=N;r++){let v,n;if(r<=top.length){v=top[r-1];n=DEMO_NAMES[((r-1)*3+off)%10]}else{v=r<R?Math.round(last-(last-mine-1)*(r-top.length)/(R-1-top.length)):Math.round(mine-(r-R)*mine*.004);n=all[(r*7+off)%all.length]+"_"+(r%97)}
@@ -1016,7 +1017,7 @@ async function getBoard(tab,myPts){
   catch(e){return{rows:[],demo:false,err:true}}
 }
 const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-const tabsHTML=tab=>`<div class="tabs">${[["day",T.bDay],["week",T.bWeek],["month",T.bMonth]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
+const tabsHTML=tab=>`<div class="tabs">${[["day",ymd(boardDate())===ymd(new Date())?T.bDay:(w=>w[0].toUpperCase()+w.slice(1))(boardDate().toLocaleDateString(T.loc,{weekday:"long"}))],["week",T.bWeek],["month",T.bMonth]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
 function boardBody(tab,B){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière
   const rows=B.rows,i=rows.findIndex(o=>o.moi);
   if(!rows.length)return tabsHTML(tab)+`<p class="hint">${B.err?T.bErr:T.bEmpty}</p>`;
