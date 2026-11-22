@@ -806,8 +806,8 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const el=(s,i)=>box.querySelector(`[data-s="${s}"][data-i="${i}"]`);
     const draw=()=>{const B=box.getBoundingClientRect();
       svg.innerHTML=Object.entries(links).map(([l,r])=>{const a=el("L",l).getBoundingClientRect(),b=el("R",r).getBoundingClientRect();
-        const x1=a.right-B.left,y1=a.top+a.height/2-B.top,x2=b.left-B.left,y2=b.top+b.height/2-B.top,ok=+l===r;
-        const col=checked&&ok?"var(--cyan)":"var(--magenta)",dash=checked&&!ok?' stroke-dasharray="6 5"':"";
+        const x1=a.right-B.left,y1=a.top+a.height/2-B.top,x2=b.left-B.left,y2=b.top+b.height/2-B.top,ok=+l===r,hors=q.seul!=null&&+l!==q.seul;
+        const col=checked&&ok&&!hors?"var(--cyan)":"var(--magenta)",dash=checked&&!ok&&!hors?' stroke-dasharray="6 5"':"";
         return `<path d="M${x1} ${y1} C${x1+28} ${y1} ${x2-28} ${y2} ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round"${dash}/><circle cx="${x1}" cy="${y1}" r="5" fill="${col}"/><circle cx="${x2}" cy="${y2}" r="5" fill="${col}"/>`}).join("");
       opts.forEach(o=>{const s=o.dataset.s,i=+o.dataset.i,linked=s==="L"?(i in links):Object.values(links).includes(i);
         o.classList.toggle("sel",!!pend&&pend.s===s&&pend.i===i);o.classList.toggle("linked",linked&&!checked)});
@@ -821,6 +821,8 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     window.onresize=draw;draw();
     go.onclick=()=>{checked=true;lock();go.remove();$("#lkh").remove();
       let good=0;for(const k in links)if(+k===links[k])good++;
+      // q.seul : une seule paire compte (ex. l'escalade en 1, « le reste ne compte pas » — Gilles 22/11)
+      if(q.seul!=null){const ok=links[q.seul]===q.seul;const o=el("L",q.seul);if(o)o.classList.add(ok?"right":"wrong");draw();done(ok,ok?1:0,q.reponse||"");return}
       opts.forEach(o=>{if(o.dataset.s==="L"){const i=+o.dataset.i;o.classList.add(links[i]===i?"right":"wrong")}});
       draw();done(good===n,pairsScore(good,n),T.pairsGood(good,n))};
   }
