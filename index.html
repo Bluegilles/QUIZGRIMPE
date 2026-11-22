@@ -275,13 +275,14 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
   return out>0?s/2:s; // réponse hors de la fourchette : points divisés par 2, donc 50 au maximum (Gilles, 17/11)
 }
 function motusGame(q,host,finish){
+  const Lx=I18N[LANG||"fr"];
   const W=q.word,N=W.length,PRE=q.pre||[],T=PRE.length+(PRE.length?2:3),known=Array(N).fill(null),keyState={};
   let rows=[...PRE],cur="",over=false,busy=false,reveals=0,tmr=null;
   if(Array.isArray(q.donnees))q.donnees.forEach(i=>known[i]=W[i]);else if(!PRE.length&&N>=7)known[0]=W[0];
-  host.innerHTML=`<p class="hint">${PRE.length?`La partie est déjà commencée : lis les couleurs, puis tape un nom de ${N} lettres. <b>Il te reste ${T-PRE.length} essais.</b>`:`Tape un nom de ${N} lettres : il se valide tout seul. <b>Tu as ${T} essais.</b>${known.some(Boolean)?" Les lettres en pointillés sont données.":""}`}</p>
-    <p class="mo-leg"><span class="mo-c g">A</span> bien placée <span class="mo-c y">A</span> mal placée <span class="mo-c a">A</span> absente</p>
-    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>Révéler une lettre (−20 pts)</button></div><div class="mo-kb"></div>`;
-  const grid=host.querySelector(".mo-grid"),kb=host.querySelector(".mo-kb"),rev=host.querySelector("[data-mrev]"),R=["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"];
+  host.innerHTML=`<p class="hint">${PRE.length?Lx.moPre(N,T-PRE.length):Lx.moStart(N,T,known.some(Boolean))}</p>
+    <p class="mo-leg"><span class="mo-c g">A</span> ${Lx.moLeg[0]} <span class="mo-c y">A</span> ${Lx.moLeg[1]} <span class="mo-c a">A</span> ${Lx.moLeg[2]}</p>
+    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>${Lx.moRev}</button></div><div class="mo-kb"></div>`;
+  const grid=host.querySelector(".mo-grid"),kb=host.querySelector(".mo-kb"),rev=host.querySelector("[data-mrev]"),R=Lx.kb;
   const color=g=>{const res=Array(N).fill("a"),pool={};[...W].forEach((c,i)=>{if(g[i]===c)res[i]="g";else pool[c]=(pool[c]||0)+1});[...g].forEach((c,i)=>{if(res[i]!=="g"&&pool[c]){res[i]="y";pool[c]--}});return res};
   const mark=g=>{const c=color(g),rank={a:1,y:2,g:3};[...g].forEach((ch,i)=>{if(!keyState[ch]||rank[c[i]]>rank[keyState[ch]])keyState[ch]=c[i]})};
   const greenAt=i=>rows.some(g=>g[i]===W[i]),hidden=()=>[...W].map((_,i)=>i).filter(i=>!known[i]&&!greenAt(i));
@@ -290,19 +291,19 @@ function motusGame(q,host,finish){
     grid.innerHTML=Array.from({length:T},(_,r)=>{const g=rows[r],c=g?color(g):null,isCur=r===rows.length&&!over,txt=g||(isCur?cur:"");
       return `<div class="mo-row${r<PRE.length?" pre":""}">${Array.from({length:N},(_,i)=>{const ch=txt[i],kn=known[i]||(greenAt(i)?W[i]:null);
         if(!ch&&isCur&&kn)return `<div class="mo-cell ghost">${kn}</div>`;return `<div class="mo-cell ${c?c[i]:(ch?"full":"")}">${ch||""}</div>`}).join("")}</div>`}).join("");
-    kb.innerHTML=R.map(l=>`<div>${[...l].map(k=>`<button type="button" class="mo-key ${k==="⌫"?"wide":""} ${keyState[k]||""}" data-k="${k}" aria-label="${k==="⌫"?"Effacer":k}">${k}</button>`).join("")}</div>`).join("");
+    kb.innerHTML=R.map(l=>`<div>${[...l].map(k=>`<button type="button" class="mo-key ${k==="⌫"?"wide":""} ${keyState[k]||""}" data-k="${k}" aria-label="${k==="⌫"?Lx.erase:k}">${k}</button>`).join("")}</div>`).join("");
     kb.querySelectorAll(".mo-key").forEach(b=>b.onclick=()=>press(b.dataset.k));
     rev.disabled=over||!hidden().length;
   }
-  rev.onclick=()=>{const h=hidden();if(over||!h.length)return;const i=h[Math.floor(Math.random()*h.length)];known[i]=W[i];keyState[W[i]]="g";reveals++;rev.textContent=`Révéler une lettre (−20 pts) · ${reveals}`;
-    if(!hidden().length){over=true;cur="";rows.push(W);draw();rev.remove();finish(false,0,`Tu as révélé tout le mot : ${q.reponse||W}.`);return}
+  rev.onclick=()=>{const h=hidden();if(over||!h.length)return;const i=h[Math.floor(Math.random()*h.length)];known[i]=W[i];keyState[W[i]]="g";reveals++;rev.textContent=`${Lx.moRev} · ${reveals}`;
+    if(!hidden().length){over=true;cur="";rows.push(W);draw();rev.remove();finish(false,0,Lx.moAllRev(q.reponse||W));return}
     draw()};
   function press(k){
     if(over||(busy&&k!=="↵"))return;
     if(k==="⌫"){cur=cur.slice(0,-1);return draw()}
     if(k==="↵"){mark(cur);rows.push(cur);cur="";const mine=rows.length-PRE.length;
-      if(rows[rows.length-1]===W){over=true;draw();rev.remove();finish(true,Math.max(.1,1-.1*(mine-1)-.2*reveals),reveals?`${reveals} lettre${reveals>1?"s":""} révélée${reveals>1?"s":""}.`:"")}
-      else if(rows.length===T){over=true;draw();rev.remove();finish(false,0,`C’était ${q.reponse||W}.`)}
+      if(rows[rows.length-1]===W){over=true;draw();rev.remove();finish(true,Math.max(.1,1-.1*(mine-1)-.2*reveals),reveals?Lx.moRevd(reveals):"")}
+      else if(rows.length===T){over=true;draw();rev.remove();finish(false,0,Lx.moWas(q.reponse||W))}
       else draw();return}
     if(cur.length<N&&/^[A-Z]$/.test(k)){cur+=k;draw();if(cur.length===N){busy=true;tmr=setTimeout(()=>{busy=false;press("↵")},350)}}
   }
@@ -355,7 +356,7 @@ async function geoQuestion(q,host,finish){
       const hit=e.target.closest("path[data-id]");if(!hit)return;answered=true;
       const ok=hit.dataset.id===target;hit.classList.add(ok?"gright":"gwrong");
       const good=svg.querySelector(`path[data-id="${target}"]`);if(good)good.classList.add(ok?"gright":"gtarget");
-      finish(ok,ok?1:0,ok||(q.why||"").replace(/\u2011/g,"-").includes(String(q.pays).replace(/\u2011/g,"-"))?"":T.answer(q.pays));
+      finish(ok,ok?1:0,ok||(q.why||"").replace(/\u2011/g,"-").includes(String(q.paysAff||q.pays).replace(/\u2011/g,"-"))?"":T.answer(q.paysAff||q.pays));
     }
   });
 }
@@ -491,6 +492,26 @@ es:{loc:"es-ES",horsCl:"Fuera de clasificación: este quiz terminó, ya salió e
  streak:n=>`🔥 ${n} días seguidos`,newIn:(h,m)=>`Nuevo quiz en ${h} h ${m} min.`,storyBy:"por Bluegilles",storyRes:(n,t)=>`RESULTADO · ${n}/${t} RESPUESTAS CORRECTAS`,
  storySaved:"Imagen guardada: añádela a tu historia de Instagram.",storyPress:"Mantén pulsada la imagen para guardarla y añádela a tu historia.",storyAlt:"Imagen de tu puntuación para compartir en una historia",
  pick:"Elige tu idioma",qNote:"Por ahora, las preguntas siguen en francés."}};
+const I18N2={
+ fr:{goodOrder:o=>`Bon ordre : ${o}.`,seeVideo:"Voir la vidéo",moreInfo:"En savoir plus",kb:["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"],
+  moStart:(n,t,g)=>`Tape un nom de ${n} lettres : il se valide tout seul. <b>Tu as ${t} essais.</b>${g?" Les lettres en pointillés sont données.":""}`,
+  moPre:(n,l)=>`La partie est déjà commencée : lis les couleurs, puis tape un nom de ${n} lettres. <b>Il te reste ${l} essais.</b>`,
+  moLeg:["bien placée","mal placée","absente"],moRev:"Révéler une lettre (−20 pts)",moAllRev:w=>`Tu as révélé tout le mot : ${w}.`,moWas:w=>`C’était ${w}.`,moRevd:n=>`${n} lettre${n>1?"s":""} révélée${n>1?"s":""}.`},
+ en:{goodOrder:o=>`Correct order: ${o}.`,seeVideo:"Watch the video",moreInfo:"Learn more",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+  moStart:(n,t,g)=>`Type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name: it submits by itself. <b>You have ${t} tries.</b>${g?" The dotted letters are given.":""}`,
+  moPre:(n,l)=>`The game has already started: read the colours, then type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name. <b>You have ${l} tries left.</b>`,
+  moLeg:["right place","wrong place","not in the word"],moRev:"Reveal a letter (−20 pts)",moAllRev:w=>`You revealed the whole word: ${w}.`,moWas:w=>`It was ${w}.`,moRevd:n=>`${n} letter${n>1?"s":""} revealed.`},
+ de:{goodOrder:o=>`Richtige Reihenfolge: ${o}.`,seeVideo:"Video ansehen",moreInfo:"Mehr erfahren",kb:["QWERTZUIOP","ASDFGHJKL","YXCVBNM⌫"],
+  moStart:(n,t,g)=>`Tippe einen Namen mit ${n} Buchstaben: Er wird automatisch bestätigt. <b>Du hast ${t} Versuche.</b>${g?" Die gepunkteten Buchstaben sind vorgegeben.":""}`,
+  moPre:(n,l)=>`Das Spiel hat schon begonnen: Lies die Farben und tippe dann einen Namen mit ${n} Buchstaben. <b>Du hast noch ${l} Versuche.</b>`,
+  moLeg:["richtige Stelle","falsche Stelle","nicht im Wort"],moRev:"Buchstaben aufdecken (−20 Pkt.)",moAllRev:w=>`Du hast das ganze Wort aufgedeckt: ${w}.`,moWas:w=>`Es war ${w}.`,moRevd:n=>`${n} Buchstabe${n>1?"n":""} aufgedeckt.`},
+ es:{goodOrder:o=>`Orden correcto: ${o}.`,seeVideo:"Ver el vídeo",moreInfo:"Saber más",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+  moStart:(n,t,g)=>`Escribe un nombre de ${n} letras: se valida solo. <b>Tienes ${t} intentos.</b>${g?" Las letras punteadas ya están dadas.":""}`,
+  moPre:(n,l)=>`La partida ya ha empezado: lee los colores y escribe un nombre de ${n} letras. <b>Te quedan ${l} intentos.</b>`,
+  moLeg:["bien colocada","mal colocada","no está"],moRev:"Revelar una letra (−20 pts)",moAllRev:w=>`Has revelado toda la palabra: ${w}.`,moWas:w=>`Era ${w}.`,moRevd:n=>`${n} letra${n>1?"s":""} revelada${n>1?"s":""}.`}};
+for(const l in I18N2)Object.assign(I18N[l],I18N2[l]);
+// Question traduite : les champs de q[langue] remplacent les champs français (Gilles, 22/11)
+const loc=q=>(LANG&&LANG!=="fr"&&q&&q[LANG])?{...q,...q[LANG]}:q;
 const FLAG={
 fr:`<svg viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055A4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#EF4135"/></svg>`,
 de:`<svg viewBox="0 0 5 3" aria-hidden="true"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#DD0000"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>`,
@@ -541,7 +562,7 @@ function dayNum(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.get
 function rng(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
 function buildQuiz(){
   if(mode==="bank"&&BANKQ)return bankQuiz();
-  if(mode==="daily"&&(PROG||JOUEUR)){const L=PROG&&PROG[ymd(currentDate())];return L?L.map(q=>({...mixOpts(q),type:q.format,q:JOUEUR?q.q:q.q+` <small style="color:var(--muted);font-size:.7em">n° ${q.num}</small>`})):[]}
+  if(mode==="daily"&&(PROG||JOUEUR)){const L=PROG&&PROG[ymd(currentDate())];return L?L.map(q0=>{const q=loc(q0);return{...mixOpts(q),type:q.format,q:JOUEUR?q.q:q.q+` <small style="color:var(--muted);font-size:.7em">n° ${q.num}</small>`}}):[]}
   const n=dayNum(currentDate()), r=rng(n);
   let fmts=[...FORMATS];
   if(mode==="daily"){for(let i=fmts.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[fmts[i],fmts[j]]=[fmts[j],fmts[i]]} fmts=fmts.slice(0,5)}
@@ -773,7 +794,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     go.onclick=()=>{lock();$(".actions").remove();
       let good=0;seq.forEach((v,k)=>{const o=opts.find(x=>+x.dataset.i===v);o.classList.remove("sel");o.classList.add(v===k?"right":"wrong");if(v===k)good++});
       const order=q.items.join(" → ");
-      done(good===seq.length,Math.round(orderScore(seq)*100)/100,good===seq.length?"":`Bon ordre : ${q.affiche||order}.`)};
+      done(good===seq.length,Math.round(orderScore(seq)*100)/100,good===seq.length?"":T.goodOrder(q.affiche||order))};
   }
   window.onresize=null;
   if(q.type==="pairs"){
@@ -817,7 +838,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const go=()=>{if(!tx.value.trim())return;tx.disabled=true;$("#go").remove();
       const v=norm(tx.value),hits=q.accept.map(a=>{const n=norm(a);return{a,n,d:v===n?0:lev(v,n)}}).filter(h=>h.d<=(h.n.length>5?2:h.n.length>3?1:0)).sort((x,y)=>x.d-y.d),ok=hits.length>0;
       const info=ok&&q.info?q.info[hits[0].a]||"":""; // ex. 701 : qui a enchaîné le bloc cité, et quand
-      if(ok&&!/exemple| ou /i.test(q.show))tx.value=q.show;tx.classList.add(ok?"right":"wrong");done(ok,ok?1:0,ok?info:T.answer(q.show))};
+      if(ok&&!/exemple|example| ou | or /i.test(q.show))tx.value=q.show;tx.classList.add(ok?"right":"wrong");done(ok,ok?1:0,ok?info:T.answer(q.show))};
     $("#go").onclick=go;tx.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
   }
 }
@@ -831,7 +852,7 @@ function done(ok,score,extra,noWhy){
   results.push({ok,pts:Math.round(score*100)});rope();
   if(qs[idx].img_full){const im=document.querySelector("#stage .qimg");if(im)im.src=qs[idx].img_full}
   const txt=[extra,noWhy?"":qs[idx].why].filter(Boolean).join(" ");
-  $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<"]+[^\s<".,)])/g,(m,lb,lu,u)=>lb?`<a href="${lu}" target="_blank" rel="noopener">${lb}</a>`:`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?"Voir la vidéo":"En savoir plus"}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
+  $("#fb").innerHTML=`<div class="feedback"><span class="verdict ${ok?"ok":score>0?"mid":"ko"}">${ok?T.good:score>0?T.almost:T.bad}<em>+${Math.round(score*100)} pts</em></span>${txt?`<p>${String(txt).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s<"]+[^\s<".,)])/g,(m,lb,lu,u)=>lb?`<a href="${lu}" target="_blank" rel="noopener">${lb}</a>`:`<a href="${u}" target="_blank" rel="noopener">${/youtu\.?be|vimeo/.test(u)?T.seeVideo:T.moreInfo}</a>`)}</p>`:""}<button class="btn" id="nxt">${idx<qs.length-1?T.nextQ:T.seeScore}</button></div>`;
   if(qs[idx].img_after){const b=$("#nxt");b.insertAdjacentHTML("beforebegin",`<img class="qimg" src="${qs[idx].img_after}" alt="">`)}
   const tNxt=performance.now();$("#nxt").onclick=e=>{const dt=performance.now()-tNxt;if(dt<300||(e&&e.detail===0&&dt<1200))return;idx++;render()};$("#nxt").focus();
 }
