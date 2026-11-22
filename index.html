@@ -614,7 +614,7 @@ const dayName=()=>currentDate().toLocaleDateString(T.loc,{weekday:"long"});
 let hasardK=null; // jour tiré au hasard (pour le libellé « Un quiz au hasard »)
 function quizLabel(){const P=PTXT[LANG||"fr"];return dayOffset===0?P.daily:dayOffset===hasardK?P.hasardQ:dayOffset===-1?P.veilleQ:P.dayQuiz(dayName())}
 function start(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
-  stopTimer();$("#lbTop").hidden=false;
+  stopTimer();$("#lbTop").hidden=false;{const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
   const d=currentDate();
   $("#dlabel").textContent=d.toLocaleDateString(T.loc,{weekday:"short",day:"numeric",month:"long"});
   $("#next").disabled=JOUEUR&&dayOffset>=0;
@@ -650,6 +650,7 @@ const optBtns=(opts,attr="i")=>opts.map((o,i)=>`<button class="opt" data-${attr}
 function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
   rope();
   if(idx>=qs.length)return end();
+  $("#lbTop").hidden=true;{const ls=document.querySelector(".langsel");if(ls)ls.style.display="none"}
   const q=qs[idx],st=$("#stage");
   let body="";
   switch(q.type){
@@ -939,6 +940,7 @@ function blazeForm(host,cur){
   return{value:()=>inp.value.trim()||inp.placeholder,error:()=>{host.querySelector("#aerr").hidden=false;inp.focus()}};
 }
 function end(noRec){
+  {const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
   const nq=nextQuiz(mode==="daily"?dayOffset:0);
   const n=results.filter(r=>r.ok).length,pts=results.reduce((s,r)=>s+r.pts,0),max=qs.length*100;
   const H=(mode==="all"||noRec||APERCU)?histLoad():recordGame(pts*500/max,pts,{pts,max,grid:results.map(r=>r.ok?"✅":"❌").join("")}),lvl=levelOf(H),streak=streakOf(H);
