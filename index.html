@@ -493,19 +493,19 @@ es:{loc:"es-ES",horsCl:"Fuera de clasificación: este quiz terminó, ya salió e
  storySaved:"Imagen guardada: añádela a tu historia de Instagram.",storyPress:"Mantén pulsada la imagen para guardarla y añádela a tu historia.",storyAlt:"Imagen de tu puntuación para compartir en una historia",
  pick:"Elige tu idioma",qNote:"Por ahora, las preguntas siguen en francés."}};
 const I18N2={
- fr:{goodOrder:o=>`Bon ordre : ${o}.`,seeVideo:"Voir la vidéo",moreInfo:"En savoir plus",kb:["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"],
+ fr:{pairsGood:(g,n)=>`${g} fil${g>1?"s":""} juste${g>1?"s":""} sur ${n}.`,bDay:"Aujourd’hui",bWeek:"Cette semaine",bMonth:"Ce mois-ci",goodOrder:o=>`Bon ordre : ${o}.`,seeVideo:"Voir la vidéo",moreInfo:"En savoir plus",kb:["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"],
   moStart:(n,t,g)=>`Tape un nom de ${n} lettres : il se valide tout seul. <b>Tu as ${t} essais.</b>${g?" Les lettres en pointillés sont données.":""}`,
   moPre:(n,l)=>`La partie est déjà commencée : lis les couleurs, puis tape un nom de ${n} lettres. <b>Il te reste ${l} essais.</b>`,
   moLeg:["bien placée","mal placée","absente"],moRev:"Révéler une lettre (−20 pts)",moAllRev:w=>`Tu as révélé tout le mot : ${w}.`,moWas:w=>`C’était ${w}.`,moRevd:n=>`${n} lettre${n>1?"s":""} révélée${n>1?"s":""}.`},
- en:{goodOrder:o=>`Correct order: ${o}.`,seeVideo:"Watch the video",moreInfo:"Learn more",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+ en:{pairsGood:(g,n)=>`${g} out of ${n} links correct.`,bDay:"Today",bWeek:"This week",bMonth:"This month",goodOrder:o=>`Correct order: ${o}.`,seeVideo:"Watch the video",moreInfo:"Learn more",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
   moStart:(n,t,g)=>`Type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name: it submits by itself. <b>You have ${t} tries.</b>${g?" The dotted letters are given.":""}`,
   moPre:(n,l)=>`The game has already started: read the colours, then type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name. <b>You have ${l} tries left.</b>`,
   moLeg:["right place","wrong place","not in the word"],moRev:"Reveal a letter (−20 pts)",moAllRev:w=>`You revealed the whole word: ${w}.`,moWas:w=>`It was ${w}.`,moRevd:n=>`${n} letter${n>1?"s":""} revealed.`},
- de:{goodOrder:o=>`Richtige Reihenfolge: ${o}.`,seeVideo:"Video ansehen",moreInfo:"Mehr erfahren",kb:["QWERTZUIOP","ASDFGHJKL","YXCVBNM⌫"],
+ de:{pairsGood:(g,n)=>`${g} von ${n} Verbindungen richtig.`,bDay:"Heute",bWeek:"Diese Woche",bMonth:"Dieser Monat",goodOrder:o=>`Richtige Reihenfolge: ${o}.`,seeVideo:"Video ansehen",moreInfo:"Mehr erfahren",kb:["QWERTZUIOP","ASDFGHJKL","YXCVBNM⌫"],
   moStart:(n,t,g)=>`Tippe einen Namen mit ${n} Buchstaben: Er wird automatisch bestätigt. <b>Du hast ${t} Versuche.</b>${g?" Die gepunkteten Buchstaben sind vorgegeben.":""}`,
   moPre:(n,l)=>`Das Spiel hat schon begonnen: Lies die Farben und tippe dann einen Namen mit ${n} Buchstaben. <b>Du hast noch ${l} Versuche.</b>`,
   moLeg:["richtige Stelle","falsche Stelle","nicht im Wort"],moRev:"Buchstaben aufdecken (−20 Pkt.)",moAllRev:w=>`Du hast das ganze Wort aufgedeckt: ${w}.`,moWas:w=>`Es war ${w}.`,moRevd:n=>`${n} Buchstabe${n>1?"n":""} aufgedeckt.`},
- es:{goodOrder:o=>`Orden correcto: ${o}.`,seeVideo:"Ver el vídeo",moreInfo:"Saber más",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+ es:{pairsGood:(g,n)=>`${g} de ${n} uniones correctas.`,bDay:"Hoy",bWeek:"Esta semana",bMonth:"Este mes",goodOrder:o=>`Orden correcto: ${o}.`,seeVideo:"Ver el vídeo",moreInfo:"Saber más",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
   moStart:(n,t,g)=>`Escribe un nombre de ${n} letras: se valida solo. <b>Tienes ${t} intentos.</b>${g?" Las letras punteadas ya están dadas.":""}`,
   moPre:(n,l)=>`La partida ya ha empezado: lee los colores y escribe un nombre de ${n} letras. <b>Te quedan ${l} intentos.</b>`,
   moLeg:["bien colocada","mal colocada","no está"],moRev:"Revelar una letra (−20 pts)",moAllRev:w=>`Has revelado toda la palabra: ${w}.`,moWas:w=>`Era ${w}.`,moRevd:n=>`${n} letra${n>1?"s":""} revelada${n>1?"s":""}.`}};
@@ -818,7 +818,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     go.onclick=()=>{checked=true;lock();go.remove();$("#lkh").remove();
       let good=0;for(const k in links)if(+k===links[k])good++;
       opts.forEach(o=>{if(o.dataset.s==="L"){const i=+o.dataset.i;o.classList.add(links[i]===i?"right":"wrong")}});
-      draw();done(good===n,pairsScore(good,n),`${good} fil(s) juste(s) sur ${n}.`)};
+      draw();done(good===n,pairsScore(good,n),T.pairsGood(good,n))};
   }
   if(q.type==="motus")motusGame(q,$("#motus"),(ok,score,extra)=>done(ok,score,extra));
   if(q.type==="letters"){
@@ -992,7 +992,7 @@ async function shareStory(o){
 }
 // --- Classements (maquette, données inventées) ---
 const DEMO_NAMES=["Captain_Crux","Mamie_Dévers","Réglette_Dorée","Turbo_Mauvaise_foi","Docteur_Zipette","Tonton_Pof","Bleausard_Rusé","Dalle_Sauvage","Iron_Biceps","Princesse_Peur_du_vide"];
-const DEMO={day:[500,500,492,480,463,450,441,430,412,400],month:[9620,9410,9175,8940,8870,8650,8420,8310,8050,7990],ever:[61240,58900,55310,54020,51780,49660,47320,45900,44010,42870]};
+const DEMO={day:[500,500,492,480,463,450,441,430,412,400],week:[2460,2410,2385,2330,2290,2240,2205,2160,2110,2080],month:[9620,9410,9175,8940,8870,8650,8420,8310,8050,7990],ever:[61240,58900,55310,54020,51780,49660,47320,45900,44010,42870]};
 // ================= Classements (Supabase sur le site ; maquette ailleurs) =================
 const SB={url:"https://tatfnyhcduscucllbrws.supabase.co",key:"sb_publishable_u4jE65-a14Yf2Vmpg-EC9g_hv2-MDC1"};
 function devId(){let d=null;try{d=localStorage.getItem("qg-joueur");if(!d){d=(crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g,()=>(Math.random()*16|0).toString(16)));localStorage.setItem("qg-joueur",d)}}catch(e){}return d}
@@ -1002,9 +1002,9 @@ function enClassement(quiz){ // un quiz compte pour le classement jusqu'à la so
 function sendScore(quiz,score){const d=devId(),p=pseudoGet();if(!JOUEUR||!d||!p||!enClassement(quiz))return;
   sbCall("scores",{device:d,pseudo:p,quiz,jour:ymd(new Date()),score:Math.max(0,Math.min(1000,Math.round(score)))}).then(()=>{LB={}}).catch(()=>{})}
 let LB={}; // cache des classements, vidé après chaque score envoyé
-function periode(tab){const t=new Date(),f=ymd(t),q=ymd(currentDate());return tab==="day"?[q,q]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
+function periode(tab){const t=new Date(),f=ymd(t),q=ymd(currentDate());if(tab==="week"){const l=new Date(q+"T12:00:00");l.setDate(l.getDate()-((l.getDay()+6)%7));return[ymd(l),f]}return tab==="day"?[q,q]:tab==="month"?[f.slice(0,8)+"01",f]:["2026-01-01",f]}
 function demoRows(tab,myPts){ // maquette : 10 noms inventés, le joueur 143e
-  const mine={day:myPts??292,month:4120,ever:18460}[tab],R={day:143,month:212,ever:388}[tab],off=tab==="month"?2:tab==="ever"?5:0,top=DEMO[tab],last=top[top.length-1],N=R+25,all=[...NEAR_NAMES,...DEMO_NAMES],rows=[];
+  const mine={day:myPts??292,week:1310,month:4120,ever:18460}[tab],R={day:143,week:176,month:212,ever:388}[tab],off=tab==="month"?2:tab==="week"?7:tab==="ever"?5:0,top=DEMO[tab],last=top[top.length-1],N=R+25,all=[...NEAR_NAMES,...DEMO_NAMES],rows=[];
   for(let r=1;r<=N;r++){let v,n;if(r<=top.length){v=top[r-1];n=DEMO_NAMES[((r-1)*3+off)%10]}else{v=r<R?Math.round(last-(last-mine-1)*(r-top.length)/(R-1-top.length)):Math.round(mine-(r-R)*mine*.004);n=all[(r*7+off)%all.length]+"_"+(r%97)}
     rows.push(r===R?{rang:r,pseudo:pseudoGet()||T.bYou,points:mine,moi:true}:{rang:r,pseudo:n,points:v,moi:false})}
   return rows}
@@ -1016,7 +1016,7 @@ async function getBoard(tab,myPts){
   catch(e){return{rows:[],demo:false,err:true}}
 }
 const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-const tabsHTML=tab=>`<div class="tabs">${[["day",T.bDay],["month",T.bMonth],["ever",T.bEver]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
+const tabsHTML=tab=>`<div class="tabs">${[["day",T.bDay],["week",T.bWeek],["month",T.bMonth]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
 function boardBody(tab,B){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière
   const rows=B.rows,i=rows.findIndex(o=>o.moi);
   if(!rows.length)return tabsHTML(tab)+`<p class="hint">${B.err?T.bErr:T.bEmpty}</p>`;
