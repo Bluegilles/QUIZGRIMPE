@@ -1017,7 +1017,7 @@ async function getBoard(tab,myPts){
   catch(e){return{rows:[],demo:false,err:true}}
 }
 const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-const tabsHTML=tab=>`<div class="tabs">${[["day",ymd(boardDate())===ymd(new Date())?T.bDay:(w=>w[0].toUpperCase()+w.slice(1))(boardDate().toLocaleDateString(T.loc,{weekday:"long"}))],["week",T.bWeek],["month",T.bMonth]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
+const tabsHTML=tab=>`<div class="tabs">${[["day",ymd(boardDate())===ymd(new Date())?T.bDay:(w=>w[0].toUpperCase()+w.slice(1))(boardDate().toLocaleDateString(T.loc,{weekday:"long"}))],["week",T.bWeek]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
 function boardBody(tab,B){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière
   const rows=B.rows,i=rows.findIndex(o=>o.moi);
   if(!rows.length)return tabsHTML(tab)+`<p class="hint">${B.err?T.bErr:T.bEmpty}</p>`;
