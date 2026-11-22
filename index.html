@@ -817,7 +817,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const go=()=>{if(!tx.value.trim())return;tx.disabled=true;$("#go").remove();
       const v=norm(tx.value),hits=q.accept.map(a=>{const n=norm(a);return{a,n,d:v===n?0:lev(v,n)}}).filter(h=>h.d<=(h.n.length>5?2:h.n.length>3?1:0)).sort((x,y)=>x.d-y.d),ok=hits.length>0;
       const info=ok&&q.info?q.info[hits[0].a]||"":""; // ex. 701 : qui a enchaîné le bloc cité, et quand
-      if(ok&&!/exemple/i.test(q.show))tx.value=q.show;tx.classList.add(ok?"right":"wrong");done(ok,ok?1:0,ok?info:T.answer(q.show))};
+      if(ok&&!/exemple| ou /i.test(q.show))tx.value=q.show;tx.classList.add(ok?"right":"wrong");done(ok,ok?1:0,ok?info:T.answer(q.show))};
     $("#go").onclick=go;tx.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
   }
 }
