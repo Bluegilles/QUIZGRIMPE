@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Le Quiz de la Grimpe</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -274,6 +274,8 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
   const x=+q.a,out=x<a?a-x:x>b?x-b:0,s=ecartScore(q,out+(b-a)/2);
   return out>0?s/2:s; // réponse hors de la fourchette : points divisés par 2, donc 50 au maximum (Gilles, 17/11)
 }
+// « Passer » : première touche = « Sûr ? Touche encore », deuxième touche = on abandonne la question (0 pt) — Gilles 23/11
+function armSkip(b,lab,sure,go){let t=0;b.onclick=()=>{if(!t){b.textContent=sure;b.classList.add("arm");t=setTimeout(()=>{t=0;b.textContent=lab;b.classList.remove("arm")},3000);return}clearTimeout(t);go()}}
 function motusGame(q,host,finish){
   const Lx=I18N[LANG||"fr"];
   const W=q.word,N=W.length,PRE=q.pre||[],T=PRE.length+(PRE.length?2:3),known=Array(N).fill(null),keyState={};
@@ -281,7 +283,7 @@ function motusGame(q,host,finish){
   if(Array.isArray(q.donnees))q.donnees.forEach(i=>known[i]=W[i]);else if(!PRE.length&&N>=7)known[0]=W[0];
   host.innerHTML=`<p class="hint">${PRE.length?Lx.moPre(N,T-PRE.length):Lx.moStart(N,T,known.some(Boolean))}</p>
     <p class="mo-leg"><span class="mo-c g">A</span> ${Lx.moLeg[0]} <span class="mo-c y">A</span> ${Lx.moLeg[1]} <span class="mo-c a">A</span> ${Lx.moLeg[2]}</p>
-    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>${Lx.moRev}</button></div><div class="mo-kb"></div>`;
+    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>${Lx.moRev}</button><button class="btn ghost" data-mskip>${Lx.skip}</button></div><div class="mo-kb"></div>`;
   const grid=host.querySelector(".mo-grid"),kb=host.querySelector(".mo-kb"),rev=host.querySelector("[data-mrev]"),R=Lx.kb;
   const color=g=>{const res=Array(N).fill("a"),pool={};[...W].forEach((c,i)=>{if(g[i]===c)res[i]="g";else pool[c]=(pool[c]||0)+1});[...g].forEach((c,i)=>{if(res[i]!=="g"&&pool[c]){res[i]="y";pool[c]--}});return res};
   const mark=g=>{const c=color(g),rank={a:1,y:2,g:3};[...g].forEach((ch,i)=>{if(!keyState[ch]||rank[c[i]]>rank[keyState[ch]])keyState[ch]=c[i]})};
@@ -295,6 +297,8 @@ function motusGame(q,host,finish){
     kb.querySelectorAll(".mo-key").forEach(b=>b.onclick=()=>press(b.dataset.k));
     rev.disabled=over||!hidden().length;
   }
+  {const fin=finish;finish=(...a)=>{const b=host.querySelector("[data-mskip]");if(b)b.remove();fin(...a)}}
+  armSkip(host.querySelector("[data-mskip]"),Lx.skip,Lx.skipSure,()=>{if(over)return;over=true;cur="";draw();rev.remove();finish(false,0,Lx.moWas(q.reponse||W))});
   rev.onclick=()=>{const h=hidden();if(over||!h.length)return;const i=h[Math.floor(Math.random()*h.length)];known[i]=W[i];keyState[W[i]]="g";reveals++;rev.textContent=`${Lx.moRev} · ${reveals}`;
     if(!hidden().length){over=true;cur="";rows.push(W);draw();rev.remove();finish(false,0,Lx.moAllRev(q.reponse||W));return}
     draw()};
@@ -493,19 +497,19 @@ es:{loc:"es-ES",horsCl:"Fuera de clasificación: este quiz terminó, ya salió e
  storySaved:"Imagen guardada: añádela a tu historia de Instagram.",storyPress:"Mantén pulsada la imagen para guardarla y añádela a tu historia.",storyAlt:"Imagen de tu puntuación para compartir en una historia",
  pick:"Elige tu idioma",qNote:"Por ahora, las preguntas siguen en francés."}};
 const I18N2={
- fr:{pairsGood:(g,n)=>`${g} fil${g>1?"s":""} juste${g>1?"s":""} sur ${n}.`,bDay:"Aujourd’hui",bWeek:"Cette semaine",bMonth:"Ce mois-ci",goodOrder:o=>`Bon ordre : ${o}.`,seeVideo:"Voir la vidéo",moreInfo:"En savoir plus",kb:["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"],
+ fr:{skip:"Passer",skipSure:"Sûr ? Touche encore",pairsGood:(g,n)=>`${g} fil${g>1?"s":""} juste${g>1?"s":""} sur ${n}.`,bDay:"Aujourd’hui",bWeek:"Cette semaine",bMonth:"Ce mois-ci",goodOrder:o=>`Bon ordre : ${o}.`,seeVideo:"Voir la vidéo",moreInfo:"En savoir plus",kb:["AZERTYUIOP","QSDFGHJKLM","WXCVBN⌫"],
   moStart:(n,t,g)=>`Tape un nom de ${n} lettres : il se valide tout seul. <b>Tu as ${t} essais.</b>${g?" Les lettres en pointillés sont données.":""}`,
   moPre:(n,l)=>`La partie est déjà commencée : lis les couleurs, puis tape un nom de ${n} lettres. <b>Il te reste ${l} essais.</b>`,
   moLeg:["bien placée","mal placée","absente"],moRev:"Révéler une lettre (−20 pts)",moAllRev:w=>`Tu as révélé tout le mot : ${w}.`,moWas:w=>`C’était ${w}.`,moRevd:n=>`${n} lettre${n>1?"s":""} révélée${n>1?"s":""}.`},
- en:{pairsGood:(g,n)=>`${g} out of ${n} links correct.`,bDay:"Today",bWeek:"This week",bMonth:"This month",goodOrder:o=>`Correct order: ${o}.`,seeVideo:"Watch the video",moreInfo:"Learn more",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+ en:{skip:"Skip",skipSure:"Sure? Tap again",pairsGood:(g,n)=>`${g} out of ${n} links correct.`,bDay:"Today",bWeek:"This week",bMonth:"This month",goodOrder:o=>`Correct order: ${o}.`,seeVideo:"Watch the video",moreInfo:"Learn more",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
   moStart:(n,t,g)=>`Type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name: it submits by itself. <b>You have ${t} tries.</b>${g?" The dotted letters are given.":""}`,
   moPre:(n,l)=>`The game has already started: read the colours, then type ${[8,11,18].includes(n)?"an":"a"} ${n}-letter name. <b>You have ${l} tries left.</b>`,
   moLeg:["right place","wrong place","not in the word"],moRev:"Reveal a letter (−20 pts)",moAllRev:w=>`You revealed the whole word: ${w}.`,moWas:w=>`It was ${w}.`,moRevd:n=>`${n} letter${n>1?"s":""} revealed.`},
- de:{pairsGood:(g,n)=>`${g} von ${n} Verbindungen richtig.`,bDay:"Heute",bWeek:"Diese Woche",bMonth:"Dieser Monat",goodOrder:o=>`Richtige Reihenfolge: ${o}.`,seeVideo:"Video ansehen",moreInfo:"Mehr erfahren",kb:["QWERTZUIOP","ASDFGHJKL","YXCVBNM⌫"],
+ de:{skip:"Überspringen",skipSure:"Sicher? Nochmal tippen",pairsGood:(g,n)=>`${g} von ${n} Verbindungen richtig.`,bDay:"Heute",bWeek:"Diese Woche",bMonth:"Dieser Monat",goodOrder:o=>`Richtige Reihenfolge: ${o}.`,seeVideo:"Video ansehen",moreInfo:"Mehr erfahren",kb:["QWERTZUIOP","ASDFGHJKL","YXCVBNM⌫"],
   moStart:(n,t,g)=>`Tippe einen Namen mit ${n} Buchstaben: Er wird automatisch bestätigt. <b>Du hast ${t} Versuche.</b>${g?" Die gepunkteten Buchstaben sind vorgegeben.":""}`,
   moPre:(n,l)=>`Das Spiel hat schon begonnen: Lies die Farben und tippe dann einen Namen mit ${n} Buchstaben. <b>Du hast noch ${l} Versuche.</b>`,
   moLeg:["richtige Stelle","falsche Stelle","nicht im Wort"],moRev:"Buchstaben aufdecken (−20 Pkt.)",moAllRev:w=>`Du hast das ganze Wort aufgedeckt: ${w}.`,moWas:w=>`Es war ${w}.`,moRevd:n=>`${n} Buchstabe${n>1?"n":""} aufgedeckt.`},
- es:{pairsGood:(g,n)=>`${g} de ${n} uniones correctas.`,bDay:"Hoy",bWeek:"Esta semana",bMonth:"Este mes",goodOrder:o=>`Orden correcto: ${o}.`,seeVideo:"Ver el vídeo",moreInfo:"Saber más",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
+ es:{skip:"Saltar",skipSure:"¿Seguro? Toca otra vez",pairsGood:(g,n)=>`${g} de ${n} uniones correctas.`,bDay:"Hoy",bWeek:"Esta semana",bMonth:"Este mes",goodOrder:o=>`Orden correcto: ${o}.`,seeVideo:"Ver el vídeo",moreInfo:"Saber más",kb:["QWERTYUIOP","ASDFGHJKL","ZXCVBNM⌫"],
   moStart:(n,t,g)=>`Escribe un nombre de ${n} letras: se valida solo. <b>Tienes ${t} intentos.</b>${g?" Las letras punteadas ya están dadas.":""}`,
   moPre:(n,l)=>`La partida ya ha empezado: lee los colores y escribe un nombre de ${n} letras. <b>Te quedan ${l} intentos.</b>`,
   moLeg:["bien colocada","mal colocada","no está"],moRev:"Revelar una letra (−20 pts)",moAllRev:w=>`Has revelado toda la palabra: ${w}.`,moWas:w=>`Era ${w}.`,moRevd:n=>`${n} letra${n>1?"s":""} revelada${n>1?"s":""}.`}};
@@ -679,7 +683,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     case"clues":body=`<ol class="clues" id="cl"><li><b>1</b>${q.clues[0]}</li></ol><p class="hint" id="clpts"></p><div class="actions"><button class="btn ghost" id="more">${T.clueNext}</button></div>`+(q.accept?`<input class="textin" id="cltx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="clgo">${T.validate}</button>`:`<div class="opts">${optBtns(q.opts)}</div>`);break;
     case"letters":{
       let mix=shuffle([...q.word],idx+11);for(let k=12;mix.join("")===q.word&&k<40;k++)mix=shuffle([...q.word],idx+k*7);
-      body=`<div class="slots" id="slots">${[...q.word].map((_,i)=>`<span class="slot${wordBreaks(q).has(i)?" wsep":""}"></span>`).join("")}</div><div class="tiles">${mix.map((c,i)=>`<button class="tile" data-c="${c}" aria-label="${T.letter} ${c}">${c}</button>`).join("")}</div><p class="hint" id="indt" hidden></p><div class="actions"><button class="btn ghost" id="reset">${T.erase}</button>${q.indice?`<button class="btn ghost" id="ind">${T.hintBtn}</button>`:""}</div>`;break}
+      body=`<div class="slots" id="slots">${[...q.word].map((_,i)=>`<span class="slot${wordBreaks(q).has(i)?" wsep":""}"></span>`).join("")}</div><div class="tiles">${mix.map((c,i)=>`<button class="tile" data-c="${c}" aria-label="${T.letter} ${c}">${c}</button>`).join("")}</div><p class="hint" id="indt" hidden></p><div class="actions"><button class="btn ghost" id="reset">${T.erase}</button>${q.indice?`<button class="btn ghost" id="ind">${T.hintBtn}</button>`:""}<button class="btn ghost" id="skip">${T.skip}</button></div>`;break}
     case"motus":body=`<div id="motus"></div>`;break;
     case"zoom":body=`<div class="zoomw"><img id="zim" src="${q.img}" alt=""><div class="zbg" id="zbg" style="background-image:url('${q.img}');background-position:${(q.focus||{x:.5}).x*100}% ${(q.focus||{y:.5}).y*100}%;background-size:${(q.zoom||8)*100}%"></div></div><div class="timer"><i id="bar"></i></div><span class="live" id="live">100 pts</span><input class="textin" id="ztx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="zgo">${T.validate}</button>`;break;
     case"spot":body=`<div class="spotw" id="spw"><img src="${q.img}" alt="" draggable="false">${q.spots?`<button class="spgo" id="go" disabled>${T.validate}</button>`:""}</div><p class="hint" id="sph">${q.spots?T.spotHintN:T.spotHint}</p>`;break;
@@ -833,11 +837,12 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const paint=()=>slots.forEach((s,i)=>{s.textContent=typed[i]?typed[i].dataset.c:"";s.classList.toggle("filled",i===typed.length-1&&typed.length<q.word.length)});
     slots.forEach((s,i)=>s.onclick=()=>{if(i!==typed.length-1||typed.length===q.word.length)return;typed.pop().disabled=false;paint()});
     tiles.forEach(t=>t.onclick=()=>{typed.push(t);t.disabled=true;paint();
-      if(typed.length===q.word.length){tiles.forEach(x=>x.disabled=true);$("#reset").remove();if($("#ind"))$("#ind").remove();
+      if(typed.length===q.word.length){tiles.forEach(x=>x.disabled=true);$("#reset").remove();if($("#ind"))$("#ind").remove();if($("#skip"))$("#skip").remove();
         const w=typed.map(x=>x.dataset.c).join(""),ok=w===q.word,near=!ok&&[...w].filter((c,i)=>c!==q.word[i]).length<=2;
         slots.forEach(s=>s.style.borderColor=ok?"var(--cyan)":"var(--magenta)");
         done(ok,ok?(usedInd?.5:1):near?(usedInd?.3:.8):0,ok?"":(near?T.spell+" ":"")+T.answer(q.reponse||q.word))}});
     $("#reset").onclick=()=>{typed=[];tiles.forEach(x=>x.disabled=false);paint()};
+    armSkip($("#skip"),T.skip,T.skipSure,()=>{tiles.forEach(x=>x.disabled=true);["#reset","#ind","#skip"].forEach(k=>{if($(k))$(k).remove()});slots.forEach(s=>s.style.borderColor="var(--magenta)");done(false,0,T.answer(q.reponse||q.word))});
   }
   if(q.type==="text"){
     const tx=$("#tx");tx.focus();
@@ -1145,6 +1150,7 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 .spd.slow b i{background:#E8352B}
 .spd span{min-width:3.4em;text-align:right}
 .spd.slow span{color:#E8352B}
+.btn.ghost.arm{border-color:var(--magenta);color:var(--magenta)}
 </style>
 <script>
 // ===== Bonus de rapidité (Gilles, 17/11) : temps de grâce par format, puis −1 %/s jusqu'à 80 % =====
