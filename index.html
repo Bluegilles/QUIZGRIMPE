@@ -275,7 +275,7 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
   return out>0?s/2:s; // réponse hors de la fourchette : points divisés par 2, donc 50 au maximum (Gilles, 17/11)
 }
 // « Passer » : première touche = « Sûr ? Touche encore », deuxième touche = on abandonne la question (0 pt) — Gilles 23/11
-function armSkip(b,lab,sure,go){let t=0;b.onclick=()=>{if(!t){b.textContent=sure;b.classList.add("arm");t=setTimeout(()=>{t=0;b.textContent=lab;b.classList.remove("arm")},3000);return}clearTimeout(t);go()}}
+function armSkip(b,lab,sure,go){if(b)b.onclick=go}
 function motusGame(q,host,finish){
   const Lx=I18N[LANG||"fr"];
   const W=q.word,N=W.length,PRE=q.pre||[],T=PRE.length+(PRE.length?2:3),known=Array(N).fill(null),keyState={};
@@ -283,7 +283,7 @@ function motusGame(q,host,finish){
   if(Array.isArray(q.donnees))q.donnees.forEach(i=>known[i]=W[i]);else if(!PRE.length&&N>=7)known[0]=W[0];
   host.innerHTML=`<p class="hint">${PRE.length?Lx.moPre(N,T-PRE.length):Lx.moStart(N,T,known.some(Boolean))}</p>
     <p class="mo-leg"><span class="mo-c g">A</span> ${Lx.moLeg[0]} <span class="mo-c y">A</span> ${Lx.moLeg[1]} <span class="mo-c a">A</span> ${Lx.moLeg[2]}</p>
-    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>${Lx.moRev}</button><button class="btn ghost" data-mskip>${Lx.skip}</button></div><div class="mo-kb"></div>`;
+    <div class="mo-grid" style="--n:${N}"></div><div class="actions"><button class="btn ghost" data-mrev>${Lx.moRev}</button></div><button class="skiplink" data-mskip>${Lx.skip}</button><div class="mo-kb"></div>`;
   const grid=host.querySelector(".mo-grid"),kb=host.querySelector(".mo-kb"),rev=host.querySelector("[data-mrev]"),R=Lx.kb;
   const color=g=>{const res=Array(N).fill("a"),pool={};[...W].forEach((c,i)=>{if(g[i]===c)res[i]="g";else pool[c]=(pool[c]||0)+1});[...g].forEach((c,i)=>{if(res[i]!=="g"&&pool[c]){res[i]="y";pool[c]--}});return res};
   const mark=g=>{const c=color(g),rank={a:1,y:2,g:3};[...g].forEach((ch,i)=>{if(!keyState[ch]||rank[c[i]]>rank[keyState[ch]])keyState[ch]=c[i]})};
@@ -683,7 +683,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     case"clues":body=`<ol class="clues" id="cl"><li><b>1</b>${q.clues[0]}</li></ol><p class="hint" id="clpts"></p><div class="actions"><button class="btn ghost" id="more">${T.clueNext}</button></div>`+(q.accept?`<input class="textin" id="cltx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="clgo">${T.validate}</button>`:`<div class="opts">${optBtns(q.opts)}</div>`);break;
     case"letters":{
       let mix=shuffle([...q.word],idx+11);for(let k=12;mix.join("")===q.word&&k<40;k++)mix=shuffle([...q.word],idx+k*7);
-      body=`<div class="slots" id="slots">${[...q.word].map((_,i)=>`<span class="slot${wordBreaks(q).has(i)?" wsep":""}"></span>`).join("")}</div><div class="tiles">${mix.map((c,i)=>`<button class="tile" data-c="${c}" aria-label="${T.letter} ${c}">${c}</button>`).join("")}</div><p class="hint" id="indt" hidden></p><div class="actions"><button class="btn ghost" id="reset">${T.erase}</button>${q.indice?`<button class="btn ghost" id="ind">${T.hintBtn}</button>`:""}<button class="btn ghost" id="skip">${T.skip}</button></div>`;break}
+      body=`<div class="slots" id="slots">${[...q.word].map((_,i)=>`<span class="slot${wordBreaks(q).has(i)?" wsep":""}"></span>`).join("")}</div><div class="tiles">${mix.map((c,i)=>`<button class="tile" data-c="${c}" aria-label="${T.letter} ${c}">${c}</button>`).join("")}</div><p class="hint" id="indt" hidden></p><div class="actions"><button class="btn ghost" id="reset">${T.erase}</button>${q.indice?`<button class="btn ghost" id="ind">${T.hintBtn}</button>`:""}</div><button class="skiplink" id="skip">${T.skip}</button>`;break}
     case"motus":body=`<div id="motus"></div>`;break;
     case"zoom":body=`<div class="zoomw"><img id="zim" src="${q.img}" alt=""><div class="zbg" id="zbg" style="background-image:url('${q.img}');background-position:${(q.focus||{x:.5}).x*100}% ${(q.focus||{y:.5}).y*100}%;background-size:${(q.zoom||8)*100}%"></div></div><div class="timer"><i id="bar"></i></div><span class="live" id="live">100 pts</span><input class="textin" id="ztx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="zgo">${T.validate}</button>`;break;
     case"spot":body=`<div class="spotw" id="spw"><img src="${q.img}" alt="" draggable="false">${q.spots?`<button class="spgo" id="go" disabled>${T.validate}</button>`:""}</div><p class="hint" id="sph">${q.spots?T.spotHintN:T.spotHint}</p>`;break;
@@ -1150,7 +1150,7 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 .spd.slow b i{background:#E8352B}
 .spd span{min-width:3.4em;text-align:right}
 .spd.slow span{color:#E8352B}
-.btn.ghost.arm{border-color:var(--magenta);color:var(--magenta)}
+.skiplink{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;color:var(--muted);font:500 .85rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script>
 // ===== Bonus de rapidité (Gilles, 17/11) : temps de grâce par format, puis −1 %/s jusqu'à 80 % =====
