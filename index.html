@@ -702,7 +702,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       let mix=shuffle([...q.word],idx+11);for(let k=12;mix.join("")===q.word&&k<40;k++)mix=shuffle([...q.word],idx+k*7);
       body=`<div class="slots" id="slots">${[...q.word].map((_,i)=>`<span class="slot${wordBreaks(q).has(i)?" wsep":""}"></span>`).join("")}</div><div class="tiles">${mix.map((c,i)=>`<button class="tile" data-c="${c}" aria-label="${T.letter} ${c}">${c}</button>`).join("")}</div><p class="hint" id="indt" hidden></p><div class="actions"><button class="btn ghost" id="reset">${T.erase}</button>${q.indice?`<button class="btn ghost" id="ind">${T.hintBtn}</button>`:""}</div><button class="skiplink" id="skip">${T.skip}</button>`;break}
     case"motus":body=`<div id="motus"></div>`;break;
-    case"zoom":body=`<div class="zoomw"><img id="zim" src="${q.img}" alt=""><div class="zbg" id="zbg" style="background-image:url('${q.img}');background-position:${(q.focus||{x:.5}).x*100}% ${(q.focus||{y:.5}).y*100}%;background-size:${(q.zoom||8)*100}%"></div></div><div class="timer"><i id="bar"></i></div><span class="live" id="live">100 pts</span><input class="textin" id="ztx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="zgo">${T.validate}</button>`;break;
+    case"zoom":body=`<div class="zoomw"><img id="zim" src="${q.img}" alt=""><div class="zbg" id="zbg" style="background-image:url('${q.img}');background-position:${(q.focus||{x:.5}).x*100}% ${(q.focus||{y:.5}).y*100}%;background-size:${(q.zoom||8)*100}%"></div></div><div class="timer"><i id="bar"></i></div><span class="live" id="live">100 pts</span><input class="textin" id="ztx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.typeName}" aria-label="${T.yourAnswer}"><button class="btn" id="zgo">${T.validate}</button><button class="skiplink" id="zskip">${T.skip}</button>`;break;
     case"spot":body=`<div class="spotw" id="spw"><img src="${q.img}" alt="" draggable="false">${q.spots?`<button class="spgo" id="go" disabled>${T.validate}</button>`:""}</div><p class="hint" id="sph">${q.spots?T.spotHintN:T.spotHint}</p>`;break;
     case"text":body=`<input class="textin" id="tx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.yourAnswer}" aria-label="${T.yourAnswer}"><button class="btn" id="go">${T.validate}</button>`;break;
   }
@@ -743,11 +743,12 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       bar.style.transform=`scaleX(${1-t})`;live.textContent=`${Math.round(pts()*100)} pts`;if(t<1&&!over)timer=requestAnimationFrame(step)};
     {const c=tx.closest(".card"),sc=()=>{const t=c&&c.getBoundingClientRect().top;if(t>8||t<0)window.scrollTo(0,window.scrollY+t-8)};sc();setTimeout(sc,80);im.addEventListener("load",sc,{once:true})}
     const start=()=>{timer=requestAnimationFrame(step)};if(im.complete)start();else{im.onload=start;im.onerror=start}
-    const finish=ok=>{over=true;stopTimer();bg.style.transition="background-size .6s ease-out";bg.style.backgroundSize="100%";tx.disabled=true;const g=$("#zgo");if(g)g.remove();
+    const finish=ok=>{over=true;stopTimer();bg.style.transition="background-size .6s ease-out";bg.style.backgroundSize="100%";tx.disabled=true;["#zgo","#zskip"].forEach(k=>{const g=$(k);if(g)g.remove()});
       const p=pts();live.textContent=ok?`${Math.round(p*100)} pts`:"0 pts";done(ok,ok?p:0,ok?"":T.answer(q.show))};
     const go=()=>{if(over||!tx.value.trim())return;const v=norm(tx.value),ok=q.accept.flatMap(a=>{const w=norm(a).split(" ");return w.length===2?[w.join(" "),w[1]+" "+w[0]]:[w.join(" ")]}).some(n=>v===n||lev(v,n)<=(n.length>5?2:n.length>3?1:0));
       if(ok){tx.value=q.show;tx.classList.add("right");finish(true)}else{wrong++;tx.value="";if(wrong>=3){tx.classList.add("wrong");finish(false)}else tx.placeholder=T.tryAgain}};
     $("#zgo").onclick=go;tx.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+    armSkip($("#zskip"),T.skip,T.skipSure,()=>{if(over)return;tx.classList.add("wrong");finish(false)}); // « Passer » aussi sur le dézoom — Gilles 26/11
   }
   if(q.type==="clues"){
     let shown=1,wrong=0,over=false;const N=q.clues.length,cl=$("#cl"),more=$("#more"),pts=()=>Math.max(.1,1-.2*(shown-1)-.2*wrong),ans=q.accept?q.show:q.opts[q.a];
