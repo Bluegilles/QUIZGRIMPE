@@ -973,7 +973,7 @@ function blazeForm(host,cur){
   return{value:()=>inp.value.trim()||inp.placeholder,error:()=>{host.querySelector("#aerr").hidden=false;inp.focus()}};
 }
 // Bouton « Donne ton avis » : fin de la semaine de test, du vendredi 27/11 au lundi 30/11 (Gilles 26/11)
-const AVIS={du:"2026-11-27",au:"2026-11-30",txt:{fr:"Donne ton avis · 2 min",en:"Give your feedback · 2 min",de:"Deine Meinung · 2 Min.",es:"Danos tu opinión · 2 min"},sub:{fr:"Fin de la semaine de test : aide-nous à améliorer le quiz.",en:"The test week is over: help us make the quiz better.",de:"Die Testwoche ist vorbei: Hilf uns, das Quiz zu verbessern.",es:"Se acabó la semana de prueba: ayúdanos a mejorar el quiz."}};
+const AVIS={du:"2026-11-27",au:"2026-11-30",txt:{fr:"Donne ton avis · 2 min",en:"Give your feedback · 2 min",de:"Deine Meinung · 2 Min.",es:"Danos tu opinión · 2 min"},sub:{fr:"Fin de la semaine de test : aide-moi à améliorer le quiz.",en:"The test week is over: help me make the quiz better.",de:"Die Testwoche ist vorbei: Hilf mir, das Quiz zu verbessern.",es:"Se acabó la semana de prueba: ayúdame a mejorar el quiz."}};
 function avisBtn(){const t=ymd(new Date()),l=LANG||"fr";if(t<AVIS.du||t>AVIS.au)return"";return`<a class="btn avisbtn" href="avis/">${AVIS.txt[l]||AVIS.txt.fr}</a><p class="hint avishint">${AVIS.sub[l]||AVIS.sub.fr}</p>`}
 function end(noRec){
   if(ecOn()&&!noRec)ecSet(null);

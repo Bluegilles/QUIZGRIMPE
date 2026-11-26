@@ -83,10 +83,10 @@ fr:{back:"← Retour au quiz",brand:"Le Quiz de la Grimpe",title:'Ton <mark>avis
   q6:"Les explications après chaque réponse, tu les lis ?",e:["Toujours","Parfois","Jamais"],
   q7:"Tu continuerais à jouer chaque jour ?",c:["Oui","Peut-être","Non"],
   q8:"Tu le conseillerais à un ami grimpeur ?",n0:"0 · jamais",n10:"10 · carrément",
-  q9:"Une chose à changer, une idée ou un bug ?",ph9:"Dis-nous tout…",
+  q9:"Une chose à changer, une idée ou un bug ?",ph9:"Dis-moi tout…",
   q10:"La traduction anglaise te paraissait naturelle ?",t:["Oui","Moyen","Non"],
   send:"Envoyer mon avis",sending:"Envoi…",miss:n=>`Encore ${n} question${n>1?"s":""} à remplir.`,ok:"",fail:"Oups, l’envoi n’a pas marché. Réessaie dans un instant.",
-  thx:"Merci !",thxP:"Ton avis est bien arrivé. On s’en sert pour améliorer le quiz.",thxBack:"Retour au quiz",
+  thx:"Merci !",thxP:"Ton avis est bien arrivé. Je m’en sers pour améliorer le quiz.",thxBack:"Retour au quiz",
   labels:{qcm:"QCM / Vrai‑faux",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l’ordre",pairs:"Relier par paires",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",clues:"Indices successifs",spot:"Sur la photo",zoom:"Dézoom"}},
 en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feedback</mark>',intro:"2 minutes, promise. Thanks for playing this week!",
   again:"You’ve already sent your feedback, thanks! You can send it again if you’ve changed your mind.",
@@ -97,10 +97,10 @@ en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feed
   q6:"Do you read the explanations after each answer?",e:["Always","Sometimes","Never"],
   q7:"Would you keep playing every day?",c:["Yes","Maybe","No"],
   q8:"Would you recommend it to a climbing friend?",n0:"0 · never",n10:"10 · totally",
-  q9:"One thing to change, an idea or a bug?",ph9:"Tell us everything…",
+  q9:"One thing to change, an idea or a bug?",ph9:"Tell me everything…",
   q10:"Did the English translation feel natural?",t:["Yes","So-so","No"],
   send:"Send my feedback",sending:"Sending…",miss:n=>`${n} more question${n>1?"s":""} to answer.`,fail:"Oops, that didn’t go through. Try again in a moment.",
-  thx:"Thanks!",thxP:"Your feedback arrived safely. We’ll use it to make the quiz better.",thxBack:"Back to the quiz",
+  thx:"Thanks!",thxP:"Your feedback arrived safely. I’ll use it to make the quiz better.",thxBack:"Back to the quiz",
   labels:{qcm:"Multiple choice / True or false",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",letters:"Unscramble",motus:"Hidden word",text:"Free answer",clues:"Clue by clue",spot:"In the photo",zoom:"Zoom out"}}};
 // Valeurs enregistrées en français, quelle que soit la langue, pour lire les réponses facilement.
 const FR=T.fr;
@@ -135,9 +135,12 @@ function render(){
   document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=b.dataset.v;
     if(Array.isArray(S[k])){ // formats : 1 ou 2 choix (Gilles 26/11) ; « Aucun » exclut les formats
       let a=S[k].filter(x=>x!=="Aucun");if(v==="Aucun")a=S[k].includes("Aucun")?[]:["Aucun"];else if(a.includes(v))a=a.filter(x=>x!==v);else{a.push(v);if(a.length>2)a.shift()}S[k]=a}
-    else S[k]=S[k]===v?null:v;error=false;const y=window.scrollY;render();window.scrollTo(0,y)});
+    else S[k]=S[k]===v?null:v;error=false;refresh()});
   $("#go").onclick=submit;
 }
+function refresh(){const x=T[L],miss=required();
+  document.querySelectorAll("[data-k]").forEach(b=>b.setAttribute("aria-pressed",sel(b.dataset.k,b.dataset.v)));
+  const g=$("#go");if(g)g.disabled=!!(miss||sending);const m=$("#miss");if(m){m.className="miss"+(error?" err":"");m.textContent=error?x.fail:miss?x.miss(miss):""}}
 function devId(){let d=ls.get("qg-joueur");if(!d){d=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);ls.set("qg-joueur",d)}return d}
 async function submit(){
   if(sending||required())return;sending=true;error=false;render();
