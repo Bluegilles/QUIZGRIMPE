@@ -72,7 +72,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--cyan)}
 const SB={url:"https://tatfnyhcduscucllbrws.supabase.co",key:"sb_publishable_u4jE65-a14Yf2Vmpg-EC9g_hv2-MDC1"};
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 let L=ls.get("qg-langue")==="en"?"en":"fr";
-const FORMATS=["choice","multi","tf","map","slider","range","order","pairs","letters","motus","text","clues","spot","zoom"];
+const FORMATS=["qcm","map","slider","range","order","pairs","letters","motus","text","clues","spot","zoom"];
 const T={
 fr:{back:"← Retour au quiz",brand:"Le Quiz de la Grimpe",title:'Ton <mark>avis</mark>',intro:"2 minutes, promis. Merci d’avoir joué cette semaine !",
   again:"Tu as déjà donné ton avis, merci ! Tu peux le renvoyer si tu as changé d’avis.",
@@ -87,7 +87,7 @@ fr:{back:"← Retour au quiz",brand:"Le Quiz de la Grimpe",title:'Ton <mark>avis
   q10:"La traduction anglaise te paraissait naturelle ?",t:["Oui","Moyen","Non"],
   send:"Envoyer mon avis",sending:"Envoi…",miss:n=>`Encore ${n} question${n>1?"s":""} à remplir.`,ok:"",fail:"Oups, l’envoi n’a pas marché. Réessaie dans un instant.",
   thx:"Merci !",thxP:"Ton avis est bien arrivé. On s’en sert pour améliorer le quiz.",thxBack:"Retour au quiz",
-  labels:{choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l’ordre",pairs:"Relier par paires",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",clues:"Indices successifs",spot:"Sur la photo",zoom:"Dézoom"}},
+  labels:{qcm:"QCM / Vrai‑faux",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l’ordre",pairs:"Relier par paires",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",clues:"Indices successifs",spot:"Sur la photo",zoom:"Dézoom"}},
 en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feedback</mark>',intro:"2 minutes, promise. Thanks for playing this week!",
   again:"You’ve already sent your feedback, thanks! You can send it again if you’ve changed your mind.",
   q1:"Your nickname in the game",opt:"Optional",pseudoPh:"Your nickname",
@@ -101,7 +101,7 @@ en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feed
   q10:"Did the English translation feel natural?",t:["Yes","So-so","No"],
   send:"Send my feedback",sending:"Sending…",miss:n=>`${n} more question${n>1?"s":""} to answer.`,fail:"Oops, that didn’t go through. Try again in a moment.",
   thx:"Thanks!",thxP:"Your feedback arrived safely. We’ll use it to make the quiz better.",thxBack:"Back to the quiz",
-  labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",letters:"Unscramble",motus:"Hidden word",text:"Free answer",clues:"Clue by clue",spot:"In the photo",zoom:"Zoom out"}}};
+  labels:{qcm:"Multiple choice / True or false",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",letters:"Unscramble",motus:"Hidden word",text:"Free answer",clues:"Clue by clue",spot:"In the photo",zoom:"Zoom out"}}};
 // Valeurs enregistrées en français, quelle que soit la langue, pour lire les réponses facilement.
 const FR=T.fr;
 const S={pseudo:ls.get("qg-pseudo")||"",nb:null,diff:null,pref:[],pasAime:[],expl:null,cont:null,nps:null,com:"",trad:null};
@@ -141,7 +141,7 @@ function render(){
 function devId(){let d=ls.get("qg-joueur");if(!d){d=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);ls.set("qg-joueur",d)}return d}
 async function submit(){
   if(sending||required())return;sending=true;error=false;render();
-  const lab=a=>a.map(f=>f==="Aucun"?"Aucun":FR.labels[f]).join(", ");
+  const lab=a=>a.map(f=>f==="Aucun"?"Aucun":FR.labels[f].replace(/\u2011/g,"-")).join(", ");
   const row={device:devId(),pseudo:S.pseudo.trim().slice(0,40)||null,langue:L,nb_quiz:+S.nb,difficulte:S.diff,format_prefere:lab(S.pref),format_pas_aime:lab(S.pasAime),
     explications:S.expl,continuer:S.cont,recommande:+S.nps,commentaire:S.com.trim().slice(0,1000)||null,traduction:L==="en"?S.trad:null};
   try{const r=await fetch(SB.url+"/rest/v1/avis_testeurs",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(row)});
