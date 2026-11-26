@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Ton avis · Le Quiz de la Grimpe</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg:#fff;--surface:#fff;--ink:#1B1420;--muted:#6E6573;--line:#ECE6EE;--magenta:#E50069;--cyan:#00C5E6;--yellow:#FFE300;--soft:#FBF8FC;
+  --display:'Archivo',system-ui,sans-serif;--body:'Figtree',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.45 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.back{color:var(--muted);font:500 .9rem var(--body);text-decoration:none}
+.back:hover{color:var(--ink)}
+.lang{display:flex;gap:4px}
+.lang button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font:700 .78rem var(--mono);padding:5px 9px;border-radius:999px;cursor:pointer}
+.lang button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.brand{font:700 .78rem var(--mono);color:var(--magenta);letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
+h1{font-family:var(--display);font-stretch:75%;font-weight:900;text-transform:uppercase;font-size:2.6rem;line-height:.95;margin:0 0 10px}
+h1 mark{background:linear-gradient(transparent 55%,var(--yellow) 55%);color:inherit;padding:0 .08em}
+.intro{color:var(--muted);margin:0 0 22px}
+.q{border-top:1px solid var(--line);padding:20px 0 6px}
+.q h2{font:700 1.08rem/1.3 var(--body);margin:0 0 4px;display:flex;gap:10px}
+.q h2 .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font:700 .78rem/24px var(--mono);text-align:center;margin-top:1px}
+.q .sub{color:var(--muted);font-size:.88rem;margin:0 0 12px 34px}
+.opt{margin-left:34px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 .95rem var(--body);padding:9px 14px;border-radius:999px;cursor:pointer;min-height:42px}
+.chip:hover{border-color:#cfc6d3}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.nps{display:grid;grid-template-columns:repeat(11,1fr);gap:5px}
+.nps .chip{padding:9px 0;border-radius:10px;font-family:var(--mono);font-size:.9rem;min-width:0}
+.npsleg{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (min-width:520px){.grid{grid-template-columns:repeat(4,1fr)}}
+.fmt{position:relative;display:flex;flex-direction:column;border:1.5px solid var(--line);background:var(--soft);border-radius:12px;padding:0;cursor:pointer;overflow:hidden;text-align:left;color:var(--ink)}
+.fmt .th{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:top center;background:#fff;border-bottom:1px solid var(--line)}
+.fmt .lb{font:600 .8rem/1.2 var(--body);padding:7px 8px 8px;min-height:2.6em}
+.fmt[aria-pressed="true"]{border-color:var(--magenta);box-shadow:0 0 0 2px var(--magenta) inset}
+.fmt[aria-pressed="true"]::after{content:"✓";position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:var(--magenta);color:#fff;font:700 .85rem/24px var(--body);text-align:center}
+.none{margin-top:10px}
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font:400 1rem var(--body);color:var(--ink);background:var(--surface);resize:vertical}
+textarea{min-height:96px}
+textarea:focus,input[type=text]:focus{outline:none;border-color:var(--cyan)}
+.send{margin-top:26px;border-top:1px solid var(--line);padding-top:20px}
+.btn{width:100%;border:0;border-radius:14px;background:var(--magenta);color:#fff;font:700 1.05rem var(--body);padding:15px;cursor:pointer}
+.btn:disabled{background:#F5B3CF;cursor:default}
+.miss{color:var(--muted);font-size:.88rem;text-align:center;margin:10px 0 0;min-height:1.2em}
+.err{color:var(--magenta)}
+.done{text-align:center;padding:40px 0}
+.done .big{font-size:3rem;line-height:1;margin-bottom:12px}
+.done h2{font-family:var(--display);font-stretch:75%;font-weight:900;text-transform:uppercase;font-size:2rem;margin:0 0 8px}
+.done p{color:var(--muted);margin:0 0 22px}
+.done a{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;font:700 1rem var(--body);padding:13px 22px;border-radius:14px}
+.note{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.9rem;color:var(--muted);margin:0 0 18px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" id="back" href="../">← Retour au quiz</a><div class="lang"><button data-l="fr">FR</button><button data-l="en">EN</button></div></div>
+  <main id="app"></main>
+</div>
+<script>
+// Page « Ton avis » — questionnaire de fin de semaine de test (Gilles, 26/11).
+// Les réponses vont dans la table Supabase avis_testeurs (insertion seule, clé publique).
+const SB={url:"https://tatfnyhcduscucllbrws.supabase.co",key:"sb_publishable_u4jE65-a14Yf2Vmpg-EC9g_hv2-MDC1"};
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+let L=ls.get("qg-langue")==="en"?"en":"fr";
+const FORMATS=["choice","multi","tf","map","slider","range","order","pairs","letters","motus","text","clues","spot","zoom"];
+const T={
+fr:{back:"← Retour au quiz",brand:"Le Quiz de la Grimpe",title:'Ton <mark>avis</mark>',intro:"2 minutes, promis. Merci d’avoir joué cette semaine !",
+  again:"Tu as déjà donné ton avis, merci ! Tu peux le renvoyer si tu as changé d’avis.",
+  q1:"Ton pseudo dans le jeu",opt:"Facultatif",pseudoPh:"Ton pseudo",
+  q2:"Combien de quiz as-tu joués cette semaine ?",
+  q3:"La difficulté, c’était…",d:["Trop facile","Bien dosée","Un peu dure","Beaucoup trop dure"],
+  q4:"Ton format préféré ?",q5:"Un format que tu n’as pas aimé ou pas compris ?",fsub:"Touche l’image qui correspond.",none:"Aucun",
+  q6:"Les explications après chaque réponse, tu les lis ?",e:["Toujours","Parfois","Jamais"],
+  q7:"Tu continuerais à jouer chaque jour ?",c:["Oui","Peut-être","Non"],
+  q8:"Tu le conseillerais à un ami grimpeur ?",n0:"0 · jamais",n10:"10 · carrément",
+  q9:"Une chose à changer, une idée ou un bug ?",ph9:"Dis-nous tout…",
+  q10:"La traduction anglaise te paraissait naturelle ?",t:["Oui","Moyen","Non"],
+  send:"Envoyer mon avis",sending:"Envoi…",miss:n=>`Encore ${n} question${n>1?"s":""} à remplir.`,ok:"",fail:"Oups, l’envoi n’a pas marché. Réessaie dans un instant.",
+  thx:"Merci !",thxP:"Ton avis est bien arrivé. On s’en sert pour améliorer le quiz.",thxBack:"Retour au quiz",
+  labels:{choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l’ordre",pairs:"Relier par paires",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",clues:"Indices successifs",spot:"Sur la photo",zoom:"Dézoom"}},
+en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feedback</mark>',intro:"2 minutes, promise. Thanks for playing this week!",
+  again:"You’ve already sent your feedback, thanks! You can send it again if you’ve changed your mind.",
+  q1:"Your nickname in the game",opt:"Optional",pseudoPh:"Your nickname",
+  q2:"How many quizzes did you play this week?",
+  q3:"The difficulty was…",d:["Too easy","Just right","A bit hard","Way too hard"],
+  q4:"Your favorite format?",q5:"A format you didn’t like or didn’t get?",fsub:"Tap the matching picture.",none:"None",
+  q6:"Do you read the explanations after each answer?",e:["Always","Sometimes","Never"],
+  q7:"Would you keep playing every day?",c:["Yes","Maybe","No"],
+  q8:"Would you recommend it to a climbing friend?",n0:"0 · never",n10:"10 · totally",
+  q9:"One thing to change, an idea or a bug?",ph9:"Tell us everything…",
+  q10:"Did the English translation feel natural?",t:["Yes","So-so","No"],
+  send:"Send my feedback",sending:"Sending…",miss:n=>`${n} more question${n>1?"s":""} to answer.`,fail:"Oops, that didn’t go through. Try again in a moment.",
+  thx:"Thanks!",thxP:"Your feedback arrived safely. We’ll use it to make the quiz better.",thxBack:"Back to the quiz",
+  labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",letters:"Unscramble",motus:"Hidden word",text:"Free answer",clues:"Clue by clue",spot:"In the photo",zoom:"Zoom out"}}};
+// Valeurs enregistrées en français, quelle que soit la langue, pour lire les réponses facilement.
+const FR=T.fr;
+const S={pseudo:ls.get("qg-pseudo")||"",nb:null,diff:null,pref:null,pasAime:null,expl:null,cont:null,nps:null,com:"",trad:null};
+let sending=false,error=false,sent=false;
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const chips=(key,vals,lab)=>`<div class="chips">${vals.map((v,i)=>`<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${S[key]===v}">${esc(lab?lab[i]:v)}</button>`).join("")}</div>`;
+const grid=key=>{const x=T[L],dir=L==="en"?"formats/en/":"formats/";
+  return `<div class="grid">${FORMATS.map(f=>`<button class="fmt" data-k="${key}" data-v="${f}" aria-pressed="${S[key]===f}"><img class="th" src="${dir}${f}.jpg" alt="" loading="lazy"><span class="lb">${esc(x.labels[f])}</span></button>`).join("")}</div>`};
+const block=(n,title,body,sub)=>`<section class="q"><h2><span class="n">${n}</span><span>${title}</span></h2>${sub?`<p class="sub">${sub}</p>`:""}<div class="opt">${body}</div></section>`;
+function required(){const r=["nb","diff","pref","pasAime","expl","cont","nps"];return r.filter(k=>S[k]===null).length}
+function render(){
+  const x=T[L];document.documentElement.lang=L;document.title=(L==="en"?"Your feedback":"Ton avis")+" · "+x.brand;
+  $("#back").textContent=x.back;document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===L));
+  if(sent){$("#app").innerHTML=`<div class="done"><div class="big" aria-hidden="true">🙌</div><h2>${x.thx}</h2><p>${x.thxP}</p><a href="../">${x.thxBack}</a></div>`;return}
+  const miss=required();
+  $("#app").innerHTML=`<p class="brand">${x.brand}</p><h1>${x.title}</h1><p class="intro">${x.intro}</p>`+
+   (ls.get("qg-avis")?`<p class="note">${x.again}</p>`:"")+
+   block(1,x.q1,`<input type="text" id="pseudo" maxlength="40" autocomplete="off" placeholder="${x.pseudoPh}" value="${esc(S.pseudo)}">`,x.opt)+
+   block(2,x.q2,chips("nb",[1,2,3,4,5].map(String)))+
+   block(3,x.q3,chips("diff",FR.d,x.d))+
+   block(4,x.q4,grid("pref"),x.fsub)+
+   block(5,x.q5,grid("pasAime")+`<div class="none">${chips("pasAime",["Aucun"],[x.none])}</div>`,x.fsub)+
+   block(6,x.q6,chips("expl",FR.e,x.e))+
+   block(7,x.q7,chips("cont",FR.c,x.c))+
+   block(8,x.q8,`<div class="nps">${[...Array(11).keys()].map(i=>`<button class="chip" data-k="nps" data-v="${i}" aria-pressed="${S.nps===String(i)}">${i}</button>`).join("")}</div><div class="npsleg"><span>${x.n0}</span><span>${x.n10}</span></div>`)+
+   block(9,x.q9,`<textarea id="com" maxlength="1000" placeholder="${x.ph9}">${esc(S.com)}</textarea>`,x.opt)+
+   (L==="en"?block(10,x.q10,chips("trad",FR.t,x.t)):"")+
+   `<div class="send"><button class="btn" id="go" ${miss||sending?"disabled":""}>${sending?x.sending:x.send}</button><p class="miss ${error?"err":""}" id="miss">${error?x.fail:miss?x.miss(miss):""}</p></div>`;
+  $("#pseudo").oninput=e=>{S.pseudo=e.target.value};$("#com").oninput=e=>{S.com=e.target.value};
+  document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=b.dataset.v;S[k]=S[k]===v?null:v;error=false;const y=window.scrollY;render();window.scrollTo(0,y)});
+  $("#go").onclick=submit;
+}
+function devId(){let d=ls.get("qg-joueur");if(!d){d=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);ls.set("qg-joueur",d)}return d}
+async function submit(){
+  if(sending||required())return;sending=true;error=false;render();
+  const lab=f=>f==="Aucun"?"Aucun":FR.labels[f];
+  const row={device:devId(),pseudo:S.pseudo.trim().slice(0,40)||null,langue:L,nb_quiz:+S.nb,difficulte:S.diff,format_prefere:lab(S.pref),format_pas_aime:lab(S.pasAime),
+    explications:S.expl,continuer:S.cont,recommande:+S.nps,commentaire:S.com.trim().slice(0,1000)||null,traduction:L==="en"?S.trad:null};
+  try{const r=await fetch(SB.url+"/rest/v1/avis_testeurs",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(row)});
+    if(!r.ok)throw r.status;sent=true;ls.set("qg-avis",new Date().toISOString())}
+  catch(e){error=true}
+  sending=false;render();window.scrollTo(0,sent?0:document.body.scrollHeight)}
+document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>{L=b.dataset.l;ls.set("qg-langue",L);render()});
+render();
+</script>
+</body>
+</html>
