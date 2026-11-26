@@ -972,6 +972,9 @@ function blazeForm(host,cur){
   inp.onkeydown=e=>{if(e.key==="Enter")$("#go1").click()};
   return{value:()=>inp.value.trim()||inp.placeholder,error:()=>{host.querySelector("#aerr").hidden=false;inp.focus()}};
 }
+// Bouton « Donne ton avis » : fin de la semaine de test, du vendredi 27/11 au lundi 30/11 (Gilles 26/11)
+const AVIS={du:"2026-11-27",au:"2026-11-30",txt:{fr:"Donne ton avis · 2 min",en:"Give your feedback · 2 min",de:"Deine Meinung · 2 Min.",es:"Danos tu opinión · 2 min"},sub:{fr:"Fin de la semaine de test : aide-nous à améliorer le quiz.",en:"The test week is over: help us make the quiz better.",de:"Die Testwoche ist vorbei: Hilf uns, das Quiz zu verbessern.",es:"Se acabó la semana de prueba: ayúdanos a mejorar el quiz."}};
+function avisBtn(){const t=ymd(new Date()),l=LANG||"fr";if(t<AVIS.du||t>AVIS.au)return"";return`<a class="btn avisbtn" href="avis/">${AVIS.txt[l]||AVIS.txt.fr}</a><p class="hint avishint">${AVIS.sub[l]||AVIS.sub.fr}</p>`}
 function end(noRec){
   if(ecOn()&&!noRec)ecSet(null);
   {const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
@@ -986,7 +989,7 @@ function end(noRec){
     <div class="endhead"><div class="score">${pts}<small> / ${max}</small></div>
     <p class="endres">${T.result(n,qs.length)}</p>
     <div class="grid">${grid}</div></div>
-    <p class="verdict ok endmsg">${verdict}</p>${mode==="daily"&&PROG&&!enClassement(ymd(currentDate()))?`<p class="hint">${T.horsCl}</p>`:""}<div id="pseudohost"></div>
+    <p class="verdict ok endmsg">${verdict}</p>${mode==="daily"&&PROG&&!enClassement(ymd(currentDate()))?`<p class="hint">${T.horsCl}</p>`:""}<div id="pseudohost"></div>${avisBtn()}
     <div class="shares"><button class="btn" id="ig">${T.shareIG}</button><a class="btn" id="wa" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener">${T.shareWA}</a><button class="btn ghost" id="cp">${T.copy}</button></div>
     <p class="hint" id="igmsg" hidden></p><img id="igimg" alt="${T.storyAlt}" hidden>
     ${nq?`<button class="btn ghost" id="re">${nq.label}</button>`:""}<button class="btn ghost" id="lb">🏆 ${T.boards}</button>${streak>=2?`<p class="streak">${T.streak(streak)}</p>`:""}<p class="hint" id="cd"></p></section>`;
@@ -1113,7 +1116,7 @@ function homePlayed(g){
   const hi=P.hiName(`<span class="pname" style="font:inherit;color:var(--magenta)">${hesc(nm)}</span>`);
   const gs=g.pts!=null?`${g.pts} / ${g.max}`:g.score;
   const share=`Quiz de la Grimpe · Bluegilles · ${currentDate().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"})}\n${g.grid?g.grid+" ":""}${gs}${g.pts!=null?"":" pts"}\nhttps://lequizdelagrimpe.vercel.app`;
-  $("#stage").innerHTML=`<section class="card boards played"><h2 class="q">${hi}</h2><p class="hint">${dayOffset<0?P.doneDay(dayName(),gs):P.done(gs)}</p>
+  $("#stage").innerHTML=`<section class="card boards played"><h2 class="q">${hi}</h2><p class="hint">${dayOffset<0?P.doneDay(dayName(),gs):P.done(gs)}</p>${avisBtn()}
     <h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div><div class="shares"><a class="btn" id="wa" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener">${T.shareWA}</a><button class="btn ghost" id="cp">${T.copy}</button></div>${nq?`<button class="btn" id="yd">${nq.label}</button>`:""}<p class="hint" id="cd"></p>${JOUEUR?"":`<p class="hint demo">${T.bDemo}</p>`}</section>`;
   wireBoard($("#hb"),"day",g.pts??g.score,false);$("#lbTop").hidden=true;$("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(share);$("#cp").textContent=T.copied}catch{$("#cp").textContent=T.copyFail}}; // on est déjà sur le classement
   if(nq)$("#yd").onclick=()=>{mode="daily";dayOffset=nq.k;hasardK=nq.label===T.randomQuiz?nq.k:null;qs=buildQuiz();idx=0;results=[];render()};
@@ -1168,6 +1171,7 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 .spd.slow b i{background:#E8352B}
 .spd span{min-width:3.4em;text-align:right}
 .spd.slow span{color:#E8352B}
+.avisbtn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:var(--yellow)!important;color:var(--ink)!important;margin-top:14px}.avishint{text-align:center;margin:6px 0 4px}
 .skiplink{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;color:var(--muted);font:500 .85rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script>
