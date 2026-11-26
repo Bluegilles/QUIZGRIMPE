@@ -79,7 +79,7 @@ fr:{back:"← Retour au quiz",brand:"Le Quiz de la Grimpe",title:'Ton <mark>avis
   q1:"Ton pseudo dans le jeu",opt:"Facultatif",pseudoPh:"Ton pseudo",
   q2:"Combien de quiz as-tu joués cette semaine ?",
   q3:"La difficulté, c’était…",d:["Trop facile","Bien dosée","Un peu dure","Beaucoup trop dure"],
-  q4:"Ton format préféré ?",q5:"Un format que tu n’as pas aimé ou pas compris ?",fsub:"Touche l’image qui correspond.",none:"Aucun",
+  q4:"Ton format préféré ?",q5:"Un format que tu n’as pas aimé ou pas compris ?",fsub:"Touche 1 ou 2 images.",none:"Aucun",
   q6:"Les explications après chaque réponse, tu les lis ?",e:["Toujours","Parfois","Jamais"],
   q7:"Tu continuerais à jouer chaque jour ?",c:["Oui","Peut-être","Non"],
   q8:"Tu le conseillerais à un ami grimpeur ?",n0:"0 · jamais",n10:"10 · carrément",
@@ -93,7 +93,7 @@ en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feed
   q1:"Your nickname in the game",opt:"Optional",pseudoPh:"Your nickname",
   q2:"How many quizzes did you play this week?",
   q3:"The difficulty was…",d:["Too easy","Just right","A bit hard","Way too hard"],
-  q4:"Your favorite format?",q5:"A format you didn’t like or didn’t get?",fsub:"Tap the matching picture.",none:"None",
+  q4:"Your favorite format?",q5:"A format you didn’t like or didn’t get?",fsub:"Tap 1 or 2 pictures.",none:"None",
   q6:"Do you read the explanations after each answer?",e:["Always","Sometimes","Never"],
   q7:"Would you keep playing every day?",c:["Yes","Maybe","No"],
   q8:"Would you recommend it to a climbing friend?",n0:"0 · never",n10:"10 · totally",
@@ -104,14 +104,15 @@ en:{back:"← Back to the quiz",brand:"The Climbing Quiz",title:'Your <mark>feed
   labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",letters:"Unscramble",motus:"Hidden word",text:"Free answer",clues:"Clue by clue",spot:"In the photo",zoom:"Zoom out"}}};
 // Valeurs enregistrées en français, quelle que soit la langue, pour lire les réponses facilement.
 const FR=T.fr;
-const S={pseudo:ls.get("qg-pseudo")||"",nb:null,diff:null,pref:null,pasAime:null,expl:null,cont:null,nps:null,com:"",trad:null};
+const S={pseudo:ls.get("qg-pseudo")||"",nb:null,diff:null,pref:[],pasAime:[],expl:null,cont:null,nps:null,com:"",trad:null};
 let sending=false,error=false,sent=false;
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const chips=(key,vals,lab)=>`<div class="chips">${vals.map((v,i)=>`<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${S[key]===v}">${esc(lab?lab[i]:v)}</button>`).join("")}</div>`;
+const sel=(k,v)=>Array.isArray(S[k])?S[k].includes(v):S[k]===v;
+const chips=(key,vals,lab)=>`<div class="chips">${vals.map((v,i)=>`<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${sel(key,v)}">${esc(lab?lab[i]:v)}</button>`).join("")}</div>`;
 const grid=key=>{const x=T[L],dir=L==="en"?"formats/en/":"formats/";
-  return `<div class="grid">${FORMATS.map(f=>`<button class="fmt" data-k="${key}" data-v="${f}" aria-pressed="${S[key]===f}"><img class="th" src="${dir}${f}.jpg" alt="" loading="lazy"><span class="lb">${esc(x.labels[f])}</span></button>`).join("")}</div>`};
+  return `<div class="grid">${FORMATS.map(f=>`<button class="fmt" data-k="${key}" data-v="${f}" aria-pressed="${S[key].includes(f)}"><img class="th" src="${dir}${f}.jpg" alt="" loading="lazy"><span class="lb">${esc(x.labels[f])}</span></button>`).join("")}</div>`};
 const block=(n,title,body,sub)=>`<section class="q"><h2><span class="n">${n}</span><span>${title}</span></h2>${sub?`<p class="sub">${sub}</p>`:""}<div class="opt">${body}</div></section>`;
-function required(){const r=["nb","diff","pref","pasAime","expl","cont","nps"];return r.filter(k=>S[k]===null).length}
+function required(){const r=["nb","diff","pref","pasAime","expl","cont","nps"];return r.filter(k=>S[k]===null||(Array.isArray(S[k])&&!S[k].length)).length}
 function render(){
   const x=T[L];document.documentElement.lang=L;document.title=(L==="en"?"Your feedback":"Ton avis")+" · "+x.brand;
   $("#back").textContent=x.back;document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===L));
@@ -131,13 +132,16 @@ function render(){
    (L==="en"?block(10,x.q10,chips("trad",FR.t,x.t)):"")+
    `<div class="send"><button class="btn" id="go" ${miss||sending?"disabled":""}>${sending?x.sending:x.send}</button><p class="miss ${error?"err":""}" id="miss">${error?x.fail:miss?x.miss(miss):""}</p></div>`;
   $("#pseudo").oninput=e=>{S.pseudo=e.target.value};$("#com").oninput=e=>{S.com=e.target.value};
-  document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=b.dataset.v;S[k]=S[k]===v?null:v;error=false;const y=window.scrollY;render();window.scrollTo(0,y)});
+  document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=b.dataset.v;
+    if(Array.isArray(S[k])){ // formats : 1 ou 2 choix (Gilles 26/11) ; « Aucun » exclut les formats
+      let a=S[k].filter(x=>x!=="Aucun");if(v==="Aucun")a=S[k].includes("Aucun")?[]:["Aucun"];else if(a.includes(v))a=a.filter(x=>x!==v);else{a.push(v);if(a.length>2)a.shift()}S[k]=a}
+    else S[k]=S[k]===v?null:v;error=false;const y=window.scrollY;render();window.scrollTo(0,y)});
   $("#go").onclick=submit;
 }
 function devId(){let d=ls.get("qg-joueur");if(!d){d=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);ls.set("qg-joueur",d)}return d}
 async function submit(){
   if(sending||required())return;sending=true;error=false;render();
-  const lab=f=>f==="Aucun"?"Aucun":FR.labels[f];
+  const lab=a=>a.map(f=>f==="Aucun"?"Aucun":FR.labels[f]).join(", ");
   const row={device:devId(),pseudo:S.pseudo.trim().slice(0,40)||null,langue:L,nb_quiz:+S.nb,difficulte:S.diff,format_prefere:lab(S.pref),format_pas_aime:lab(S.pasAime),
     explications:S.expl,continuer:S.cont,recommande:+S.nps,commentaire:S.com.trim().slice(0,1000)||null,traduction:L==="en"?S.trad:null};
   try{const r=await fetch(SB.url+"/rest/v1/avis_testeurs",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(row)});
