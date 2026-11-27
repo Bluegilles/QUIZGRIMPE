@@ -1176,11 +1176,15 @@ function nextQuiz(from){ // la veille si elle n'est pas jouée, sinon un jour no
 }
 function noQuiz(){ // pas de quiz ce jour-là : « Jouer au quiz de vendredi » le week-end, sinon un quiz passé au hasard
   const P=PTXT[LANG||"fr"],H=histLoad(),k0=baseOffset();let nx=null,btn=null;
+  if(k0<0){ // week-end : le quiz du vendredi et son classement restent affichés (Gilles, 27/11)
+    const fd=new Date();fd.setDate(fd.getDate()+k0);const g=H.find(h=>h.quiz===ymd(fd));
+    if(g&&pseudoGet()){dayOffset=k0;homePlayed(g);return}}
   if(PROG){const t=ymd(currentDate());nx=Object.keys(PROG).sort().find(k=>k>t)}
   if(k0<0){const d=new Date();d.setDate(d.getDate()+k0);if(!H.some(h=>h.quiz===ymd(d)))btn={k:k0,label:P.playDay(d.toLocaleDateString(T.loc,{weekday:"long"}))}}
   if(!btn){const nq=nextQuiz(0);if(nq)btn={k:nq.k,label:T.randomQuiz}}
   const nd=nx?new Date(nx+"T12:00:00").toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):"";
-  $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${btn?`<button class="btn" id="yd">${btn.label}</button>`:""}</section>`;
+  $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${btn?`<button class="btn" id="yd">${btn.label}</button>`:""}${k0<0?`${(()=>{const fd=new Date();fd.setDate(fd.getDate()+k0);return clos(ymd(fd))?`<p class="hint">${T.horsClos}</p>`:""})()}<h3 class="lbh">${T.lbBtn}</h3><div id="hb"></div>`:""}</section>`;
+  if(k0<0){wireBoard($("#hb"),"day",null,false);$("#lbTop").hidden=true}
   if(btn)$("#yd").onclick=()=>{mode="daily";dayOffset=btn.k;hasardK=btn.label===T.randomQuiz?btn.k:null;if(pseudoGet()){qs=buildQuiz();idx=0;results=[];render()}else start()};
 }
 // --- Mes scores : historique des quiz du jour, gardé sur le téléphone (Gilles 27/11) ---
