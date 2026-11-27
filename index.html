@@ -658,7 +658,8 @@ function start(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     $("#stage").innerHTML=`<section class="card welcome first"><h2 class="q">${P.welcome1}</h2><div id="onb"></div><button class="btn" id="go1">${P.play}</button></section>`;
     form=blazeForm($("#onb"),"");$("#onb .askq").classList.add("sr");
   }else{
-    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${quizLabel()}</button><button class="chg" id="chg">${P.chg}</button></section>`;
+    $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${hi}<br>${P.again}</h2><div id="onb"></div><button class="btn" id="go1">${quizLabel()}</button>${(()=>{const D=statsData(),F=FIN[LANG||"fr"];return D.n?`<p class="endstat">${D.streak?`<span>${F.serie(D.streak)}</span><span class="sep">·</span>`:""}<button class="lnk" id="ms">${F.ms}</button></p>`:""})()}<button class="chg" id="chg">${P.chg}</button></section>`;
+    if($("#ms"))$("#ms").onclick=()=>showBoards("me",null,start);
     $("#chg").onclick=()=>{form=blazeForm($("#onb"),nm);$("#chg").remove()};
     $("#go1").focus();
   }
@@ -975,13 +976,19 @@ function blazeForm(host,cur){
 // Bouton « Donne ton avis » : fin de la semaine de test, du vendredi 27/11 au lundi 30/11 (Gilles 26/11)
 const AVIS={du:"2026-11-27",au:"2026-11-30",txt:{fr:"Donne ton avis · 2 min",en:"Give your feedback · 2 min",de:"Deine Meinung · 2 Min.",es:"Danos tu opinión · 2 min"},sub:{fr:"Fin de la semaine de test : aide-moi à améliorer le quiz.",en:"The test week is over: help me make the quiz better.",de:"Die Testwoche ist vorbei: Hilf mir, das Quiz zu verbessern.",es:"Se acabó la semana de prueba: ayúdame a mejorar el quiz."}};
 function avisBtn(){const t=ymd(new Date()),l=LANG||"fr";if(t<AVIS.du||t>AVIS.au)return"";return`<a class="btn avisbtn" href="avis/">${AVIS.txt[l]||AVIS.txt.fr}</a><p class="hint avishint">${AVIS.sub[l]||AVIS.sub.fr}</p>`}
+// Écran de fin, version hiérarchisée (Gilles 27/11) : score → série / mes scores → place → partager → classement → la suite
+const FIN={
+fr:{share:"Partager ton score",ig:"Instagram",wa:"WhatsApp",copy:"Copier mon score",ms:"Mes scores ›",serie:n=>`🔥 Série : ${n} jour${n>1?"s":""}`,rank:(r,n)=>`Tu es ${r}${r===1?"er":"e"} sur ${n} joueurs pour l’instant.`},
+en:{share:"Share your score",ig:"Instagram",wa:"WhatsApp",copy:"Copy my score",ms:"My scores ›",serie:n=>`🔥 Streak: ${n} day${n>1?"s":""}`,rank:(r,n)=>`You’re ${r}${r%10===1&&r%100!==11?"st":r%10===2&&r%100!==12?"nd":r%10===3&&r%100!==13?"rd":"th"} out of ${n} players so far.`},
+de:{share:"Teile dein Ergebnis",ig:"Instagram",wa:"WhatsApp",copy:"Ergebnis kopieren",ms:"Meine Punkte ›",serie:n=>`🔥 Serie: ${n} Tag${n>1?"e":""}`,rank:(r,n)=>`Du bist bisher ${r}. von ${n} Spielern.`},
+es:{share:"Comparte tu puntuación",ig:"Instagram",wa:"WhatsApp",copy:"Copiar mi puntuación",ms:"Mis puntos ›",serie:n=>`🔥 Racha: ${n} día${n>1?"s":""}`,rank:(r,n)=>`Vas ${r}.º de ${n} jugadores por ahora.`}};
 function end(noRec){
   if(ecOn()&&!noRec)ecSet(null);
   {const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
   const nq=nextQuiz(mode==="daily"?dayOffset:0);
   const n=results.filter(r=>r.ok).length,pts=results.reduce((s,r)=>s+r.pts,0),max=qs.length*100;
   const H=(mode==="all"||noRec||APERCU)?histLoad():recordGame(pts*500/max,pts,{pts,max,grid:results.map(r=>r.ok?"✅":"❌").join("")}),lvl=levelOf(H),streak=streakOf(H);
-  const grid=results.map(r=>r.ok?"✅":"❌").join("");
+  const grid=results.map(r=>r.ok?"✅":"❌").join(""),F=FIN[LANG||"fr"],SD=statsData();
   const r5=pts*500/max,verdict=r5>=400&&r5<450?(e=>e[Math.floor(Math.random()*e.length)])(T.ends45):T.ends[r5>=500?5:r5>=450?4:r5>=300?3:r5>=200?2:r5>=100?1:0];
   const dtxt=mode==="bank"?new Date().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}):currentDate().toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"});
   const share=`Quiz de la Grimpe · Bluegilles · ${dtxt}\n${grid} ${pts} / ${max}\nhttps://lequizdelagrimpe.vercel.app`;
@@ -989,10 +996,15 @@ function end(noRec){
     <div class="endhead"><div class="score">${pts}<small> / ${max}</small></div>
     <p class="endres">${T.result(n,qs.length)}</p>
     <div class="grid">${grid}</div></div>
-    <p class="verdict ok endmsg">${verdict}</p>${mode==="daily"&&PROG&&!enClassement(ymd(currentDate()))?`<p class="hint">${T.horsCl}</p>`:""}<div id="pseudohost"></div>${avisBtn()}
-    <div class="shares"><button class="btn" id="ig">${T.shareIG}</button><a class="btn" id="wa" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener">${T.shareWA}</a><button class="btn ghost" id="cp">${T.copy}</button></div>
+    ${mode==="daily"&&PROG&&!enClassement(ymd(currentDate()))?`<p class="hint">${T.horsCl}</p>`:""}
+    ${SD.streak?`<p class="endstat"><span>${F.serie(SD.streak)}</span></p>`:""}
+    <p class="endrank" id="rank"></p><div id="pseudohost"></div>${avisBtn()}
+    <p class="sharelab">${F.share}</p><div class="shares2"><button class="btn" id="ig">${F.ig}</button><a class="btn" id="wa" href="https://wa.me/?text=${encodeURIComponent(share)}" target="_blank" rel="noopener">${F.wa}</a></div>
+    <button class="lnk" id="cp">${F.copy}</button>
     <p class="hint" id="igmsg" hidden></p><img id="igimg" alt="${T.storyAlt}" hidden>
-    ${nq?`<button class="btn ghost" id="re">${nq.label}</button>`:""}<button class="btn ghost" id="lb">🏆 ${T.boards}</button>${streak>=2?`<p class="streak">${T.streak(streak)}</p>`:""}<p class="hint" id="cd"></p></section>`;
+    <button class="btn ghost" id="lb">🏆 ${T.boards}</button>
+    ${nq?`<button class="lnk" id="re">${nq.label}</button>`:""}<p class="hint" id="cd"></p></section>`;
+  if(mode==="daily")getBoard("day",pts).then(B=>{const me=(B.rows||[]).find(o=>o.moi),N=(B.rows||[]).length;if(me&&N>=10)$("#rank").textContent=F.rank(+me.rang,N)}).catch(()=>{});
   if(!pseudoGet()&&mode!=="all")pseudoBlock($("#pseudohost"));
   $("#ig").onclick=()=>shareStory({pts,max,n,total:qs.length,results,dtxt});
   $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(share);$("#cp").textContent=T.copied}catch{$("#cp").textContent=T.copyFail}};
@@ -1056,7 +1068,7 @@ async function getBoard(tab,myPts){
   catch(e){return{rows:[],demo:false,err:true}}
 }
 const liRow=(o,c="")=>`<li class="${c}${o.moi?" me":""}"${o.moi?' id="bme"':""}><span class="rk">${o.rang}</span><span class="nm">${hesc(o.pseudo)}</span><span class="pt">${(+o.points).toLocaleString(T.loc)} ${T.bPts}</span></li>`;
-const tabsHTML=tab=>`<div class="tabs">${[["day",ymd(boardDate())===ymd(new Date())?T.bDay:(w=>w[0].toUpperCase()+w.slice(1))(boardDate().toLocaleDateString(T.loc,{weekday:"long"}))],["week",T.bWeek]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
+const tabsHTML=tab=>`<div class="tabs">${[["day",ymd(boardDate())===ymd(new Date())?T.bDay:(w=>w[0].toUpperCase()+w.slice(1))(boardDate().toLocaleDateString(T.loc,{weekday:"long"}))],["week",T.bWeek],["me",STX[LANG||"fr"].btn]].map(([k,l])=>`<button class="tab" aria-pressed="${k===tab}" data-t="${k}">${l}</button>`).join("")}</div>`;
 function boardBody(tab,B){ // top 5, fondu, puis le joueur entre celui de devant et celui de derrière
   const rows=B.rows,i=rows.findIndex(o=>o.moi);
   if(!rows.length)return tabsHTML(tab)+`<p class="hint">${B.err?T.bErr:T.bEmpty}</p>`;
@@ -1069,6 +1081,8 @@ function boardFull(tab,B){ // tout le classement, qu'on fait défiler ; s'ouvre 
   return tabsHTML(tab)+`<ol class="board full" id="bfull">${B.rows.map(o=>liRow(o)).join("")}</ol><div class="blinks"><button class="lnk seeall" data-top>↑ ${T.bTop}</button><button class="lnk seeall" data-short>${T.bLess}</button></div>`;
 }
 async function wireBoard(host,tab,myPts,full){
+  if(tab==="me"){host.dataset.tab="me";host.innerHTML=tabsHTML("me")+`<div class="mystats">${statsHTML()}</div>`; // onglet « Mes scores » (Gilles 27/11)
+    host.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>wireBoard(host,b.dataset.t,myPts,false));return}
   host.dataset.tab=tab;const B=await getBoard(tab,myPts);if(host.dataset.tab!==tab)return;
   host.innerHTML=full?boardFull(tab,B):boardBody(tab,B);
   host.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>wireBoard(host,b.dataset.t,myPts,full));
@@ -1110,6 +1124,33 @@ function noQuiz(){ // pas de quiz ce jour-là : « Jouer au quiz de vendredi » 
   $("#stage").innerHTML=`<section class="card welcome"><h2 class="q">${P.noQuiz}</h2>${nx?`<p class="hint">${P.nextOn(nd)}</p>`:""}${btn?`<button class="btn" id="yd">${btn.label}</button>`:""}</section>`;
   if(btn)$("#yd").onclick=()=>{mode="daily";dayOffset=btn.k;hasardK=btn.label===T.randomQuiz?btn.k:null;if(pseudoGet()){qs=buildQuiz();idx=0;results=[];render()}else start()};
 }
+// --- Mes scores : historique des quiz du jour, gardé sur le téléphone (Gilles 27/11) ---
+const STX={
+fr:{title:"Mes scores",btn:"Mes scores",played:"Quiz joués",avg:"Score moyen",best:"Meilleur score",streak:"Série",days:n=>n>1?"jours":"jour",last:"Mes derniers quiz",empty:"Joue ton premier quiz pour voir tes scores ici.",home:n=>`🔥 Série : ${n} jour${n>1?"s":""} de suite`,note:"Le week‑end ne casse pas la série."},
+en:{title:"My scores",btn:"My scores",played:"Quizzes played",avg:"Average score",best:"Best score",streak:"Streak",days:n=>n>1?"days":"day",last:"My last quizzes",empty:"Play your first quiz to see your scores here.",home:n=>`🔥 Streak: ${n} day${n>1?"s":""} in a row`,note:"Weekends don’t break your streak."},
+de:{title:"Meine Punkte",btn:"Meine Punkte",played:"Gespielte Quiz",avg:"Durchschnitt",best:"Bestes Ergebnis",streak:"Serie",days:n=>n>1?"Tage":"Tag",last:"Meine letzten Quiz",empty:"Spiel dein erstes Quiz, um hier deine Punkte zu sehen.",home:n=>`🔥 Serie: ${n} Tag${n>1?"e":""} in Folge`,note:"Das Wochenende unterbricht die Serie nicht."},
+es:{title:"Mis puntos",btn:"Mis puntos",played:"Quizzes jugados",avg:"Media",best:"Mejor puntuación",streak:"Racha",days:n=>n>1?"días":"día",last:"Mis últimos quizzes",empty:"Juega tu primer quiz para ver aquí tus puntos.",home:n=>`🔥 Racha: ${n} día${n>1?"s":""} seguido${n>1?"s":""}`,note:"El fin de semana no rompe la racha."}};
+function statsData(){
+  const seen=new Set(),list=[];
+  for(const g of histLoad()){if(!g.quiz||seen.has(g.quiz))continue;seen.add(g.quiz);
+    const p=g.pts!=null&&g.max?Math.round(g.pts*800/g.max):Math.round((g.score||0)*8/5);list.push({quiz:g.quiz,pts:p})}
+  list.sort((a,b)=>a.quiz<b.quiz?-1:1);
+  const n=list.length,avg=n?Math.round(list.reduce((a,b)=>a+b.pts,0)/n):0,best=n?Math.max(...list.map(x=>x.pts)):0;
+  // série : jours de quiz (lundi → vendredi) joués d'affilée ; le week‑end ne casse pas la série
+  const set=new Set(list.map(x=>x.quiz)),isQ=x=>x.getDay()>=1&&x.getDay()<=5,prev=x=>{do{x.setDate(x.getDate()-1)}while(!isQ(x))};
+  const d=new Date();d.setHours(12,0,0,0);if(!isQ(d))prev(d);if(!set.has(ymd(d)))prev(d);
+  let streak=0;while(set.has(ymd(d))){streak++;prev(d)}
+  return{list,n,avg,best,streak};
+}
+function statsHTML(){
+  const S=STX[LANG||"fr"],D=statsData(),last=D.list.slice(-10),today=ymd(new Date());
+  const bars=last.map(x=>{const dt=new Date(x.quiz+"T12:00:00"),lab=dt.toLocaleDateString(T.loc,{weekday:"short"}).replace(".","").slice(0,3)+"<br>"+dt.getDate();
+    return `<div class="bar${x.quiz===today?" cur":""}"><div class="col"><span class="v">${x.pts}</span><i style="height:${Math.max(3,Math.round(x.pts/8))}%"></i></div><span class="d">${lab}</span></div>`}).join("");
+  return `${D.n?`<div class="stgrid"><div class="st"><b>${D.n}</b><span>${S.played}</span></div><div class="st"><b>${D.avg}<small>/800</small></b><span>${S.avg}</span></div>
+      <div class="st"><b>${D.best}<small>/800</small></b><span>${S.best}</span></div><div class="st hot"><b>${D.streak} <small>${S.days(D.streak)}</small></b><span>🔥 ${S.streak}</span></div></div>
+      <h3 class="lbh">${S.last}</h3><div class="bars">${bars}</div><p class="hint">${S.note}</p>`:`<p class="hint">${S.empty}</p>`}`;
+}
+
 function homePlayed(g){
   if(g.pts==null&&g.score!=null)g={...g,pts:Math.round(g.score*8/5),max:800}; // parties enregistrées avant le 20/11 : score sur 500 → sur 800
   const P=PTXT[LANG||"fr"],nm=pseudoGet()||"Gilles",nq=nextQuiz(dayOffset);
@@ -1172,6 +1213,31 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 .spd span{min-width:3.4em;text-align:right}
 .spd.slow span{color:#E8352B}
 .avisbtn{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;background:var(--yellow)!important;color:var(--ink)!important;margin-top:14px}.avishint{text-align:center;margin:6px 0 4px}
+.mystats .stgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mystats .st{border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.mystats .st b{font-family:var(--display);font-stretch:75%;font-weight:900;font-size:2.1rem;line-height:1;color:var(--ink)}
+.mystats .st b small{font-size:.9rem;color:var(--muted);font-weight:700;margin-left:2px}
+.mystats .st span{font-size:.82rem;color:var(--muted)}
+.mystats .st.hot{background:var(--yellow);border-color:var(--yellow)}.st.hot span,.st.hot b small{color:var(--ink)}
+.mystats .bars{display:flex;align-items:flex-end;gap:5px;margin-top:4px}
+.mystats .bar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+.mystats .bar .col{height:130px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.mystats .bar i{display:block;width:100%;max-width:24px;background:var(--cyan);border-radius:6px 6px 2px 2px}
+.mystats .bar.cur i{background:var(--magenta)}
+.mystats .bar .v{font:600 .64rem var(--mono);color:var(--muted);margin-bottom:3px}
+.mystats .bar.cur .v{color:var(--magenta)}
+.mystats .bar .d{font-size:.66rem;line-height:1.2;text-align:center;color:var(--muted);margin-top:5px}
+.endstat{margin:2px 0 0;display:flex;justify-content:center;align-items:center;gap:8px;font-weight:600;color:var(--ink);flex-wrap:wrap}
+.endstat .sep{color:var(--muted)}
+.endstat .lnk,.end>.lnk{background:none;border:0;padding:4px 2px;font:600 .95rem var(--body);color:var(--magenta);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.end>.lnk{color:var(--muted);font-weight:500;font-size:.9rem}
+.endrank{margin:0;text-align:center;color:var(--muted);font-size:.92rem;min-height:0}
+.endrank:empty{display:none}
+.sharelab{margin:10px 0 -4px;text-align:center;font:600 .8rem var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.shares2{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.shares2 .btn{text-align:center;text-decoration:none}
+.end #lb{width:100%}
+.boards .mystats{display:flex;flex-direction:column;gap:12px;margin-top:12px}.tab{white-space:nowrap}
 .skiplink{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;color:var(--muted);font:500 .85rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script>
