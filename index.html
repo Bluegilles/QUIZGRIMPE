@@ -282,6 +282,43 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
 }
 // « Passer » : première touche = « Sûr ? Touche encore », deuxième touche = on abandonne la question (0 pt) — Gilles 23/11
 function armSkip(b,lab,sure,go){if(b)b.onclick=go}
+// --- « Mot à compléter » : une rangée, des lettres données, on remplit les trous (Gilles 27/11, remplace le mot caché à la Wordle) ---
+const CPL={fr:{q:{grimpeur:"Complète le nom de ce grimpeur.",lieu:"Complète le nom de ce site d’escalade.",grimpeuse:"Complète le nom de cette grimpeuse.",falaise:"Complète le nom de cette falaise.",site:"Complète le nom de ce site.",voie:"Complète le nom de cette voie.",bloc:"Complète le nom de ce bloc.",marque:"Complète le nom de cette marque."},def:"Complète ce mot.",
+  rule:"3 essais · chaque lettre révélée coûte 20 pts",left:n=>n>1?`Raté ! Plus que ${n} essais.`:"Raté ! Dernier essai.",rev:"Révéler une lettre"},
+ en:{q:{grimpeur:"Complete this climber’s name.",lieu:"Complete the name of this climbing area.",grimpeuse:"Complete this climber’s name.",falaise:"Complete the name of this crag.",site:"Complete the name of this area.",voie:"Complete the name of this route.",bloc:"Complete the name of this boulder.",marque:"Complete the name of this brand."},def:"Complete the word.",
+  rule:"3 tries · each revealed letter costs 20 pts",left:n=>n>1?`Wrong! ${n} tries left.`:"Wrong! Last try.",rev:"Reveal a letter"},
+ de:{q:{grimpeur:"Ergänze den Namen dieses Kletterers.",grimpeuse:"Ergänze den Namen dieser Kletterin.",lieu:"Ergänze den Namen dieses Klettergebiets.",falaise:"Ergänze den Namen dieses Klettergebiets.",site:"Ergänze den Namen dieses Klettergebiets.",voie:"Ergänze den Namen dieser Route.",bloc:"Ergänze den Namen dieses Boulders.",marque:"Ergänze den Namen dieser Marke."},def:"Ergänze das Wort.",
+  rule:"3 Versuche · jeder aufgedeckte Buchstabe kostet 20 Pkt.",left:n=>n>1?`Falsch! Noch ${n} Versuche.`:"Falsch! Letzter Versuch.",rev:"Buchstaben aufdecken"},
+ es:{q:{grimpeur:"Completa el nombre de este escalador.",grimpeuse:"Completa el nombre de esta escaladora.",lieu:"Completa el nombre de esta zona de escalada.",falaise:"Completa el nombre de esta zona de escalada.",site:"Completa el nombre de esta zona de escalada.",voie:"Completa el nombre de esta vía.",bloc:"Completa el nombre de este bloque.",marque:"Completa el nombre de esta marca."},def:"Completa la palabra.",
+  rule:"3 intentos · cada letra revelada cuesta 20 pts",left:n=>n>1?`¡Fallo! Te quedan ${n} intentos.`:"¡Fallo! Último intento.",rev:"Revelar una letra"}};
+function completeGame(q,host,finish){
+  const Lx=I18N[LANG||"fr"],C=CPL[LANG]||CPL.fr,W=q.word,N=W.length,brk=wordBreaks(q);
+  const known=Array(N).fill(false);
+  if(Array.isArray(q.donnees)&&q.donnees.length)q.donnees.forEach(i=>known[i]=true);else{known[0]=true;for(let i=3;i<N;i+=3)known[i]=true}
+  let typed=[],tries=3,reveals=0,over=false,busy=false;
+  const blanks=()=>[...Array(N).keys()].filter(i=>!known[i]);
+  host.innerHTML=`<div class="cp-row" style="--n:${N}"></div><p class="hint cp-rule">${C.rule}</p><p class="cp-msg" aria-live="polite"></p>
+    <div class="actions"><button class="btn ghost" data-crev>${C.rev}</button></div><button class="skiplink" data-cskip>${Lx.skip}</button><div class="mo-kb"></div>`;
+  const row=host.querySelector(".cp-row"),kb=host.querySelector(".mo-kb"),rev=host.querySelector("[data-crev]"),msg=host.querySelector(".cp-msg");
+  function draw(){const b=blanks();
+    row.innerHTML=[...W].map((ch,i)=>{const k=b.indexOf(i),v=known[i]?ch:(typed[k]||""),cur=!over&&!known[i]&&k===typed.length;
+      return `<div class="cp-cell${known[i]?" given":""}${cur?" cur":""}${brk.has(i)?" brk":""}">${over&&!known[i]&&!v?ch:v}</div>`}).join("");
+    kb.innerHTML=Lx.kb.map(l=>`<div>${[...l].map(k=>`<button type="button" class="mo-key ${k==="⌫"?"wide":""}" data-k="${k}" aria-label="${k==="⌫"?Lx.erase:k}">${k}</button>`).join("")}</div>`).join("");
+    kb.querySelectorAll(".mo-key").forEach(x=>x.onclick=()=>press(x.dataset.k));rev.disabled=over||blanks().length<=1}
+  const end=(ok)=>{over=true;rev.remove();const s=host.querySelector("[data-cskip]");if(s)s.remove();draw();
+    finish(ok,ok?Math.max(.1,1-.2*reveals):0,ok?(reveals?Lx.moRevd(reveals):""):Lx.moWas(q.reponse||W))};
+  function check(){const b=blanks();if(b.every((i,k)=>typed[k]===W[i]))return end(true);
+    tries--;row.classList.add("shake");setTimeout(()=>row.classList.remove("shake"),400);
+    if(!tries)return end(false);msg.textContent=C.left(tries);typed=[];busy=false;draw()}
+  function press(k){if(over||busy)return;msg.textContent="";
+    if(k==="⌫"){typed.pop();return draw()}
+    if(k==="↵")return;
+    if(/^[A-Z]$/.test(k)&&typed.length<blanks().length){typed.push(k);draw();if(typed.length===blanks().length){busy=true;setTimeout(check,350)}}}
+  rev.onclick=()=>{if(over)return;const b=blanks();if(b.length<=1)return;const i=b[Math.floor(Math.random()*b.length)];known[i]=true;typed=[];reveals++;rev.textContent=`${C.rev} · −${20*reveals} pts`;draw()};
+  armSkip(host.querySelector("[data-cskip]"),Lx.skip,Lx.skipSure,()=>{if(!over)end(false)});
+  const onKey=e=>{if(!host.isConnected){document.removeEventListener("keydown",onKey);return}const k=e.key.toUpperCase();if(k==="BACKSPACE"){e.preventDefault();press("⌫")}else if(/^[A-Z]$/.test(k))press(k)};
+  document.addEventListener("keydown",onKey);draw();
+}
 function motusGame(q,host,finish){
   const Lx=I18N[LANG||"fr"];
   const W=q.word,N=W.length,PRE=q.pre||[],T=PRE.length+(PRE.length?2:3),known=Array(N).fill(null),keyState={};
@@ -435,7 +472,7 @@ const BANK={
 // ================= Langues (FR, EN, DE, ES) =================
 const I18N={
 fr:{loc:"fr-FR",horsCl:"Hors classement : ce quiz est terminé, le suivant est sorti.",bEmpty:"Personne n’a encore joué. Sois le premier !",bErr:"Classement indisponible pour le moment.",bAll:"Voir tout le classement",bTop:"Top",bLess:"Réduire le classement",lbBtn:"Leaderboard",boards:"Classements",bDay:"Du jour",bMonth:"Du mois",bEver:"Depuis le début",bYou:"Toi",bYourRank:r=>`Tu es ${r}ᵉ`,bPts:"pts",bDemo:"Maquette : les joueurs et les scores sont inventés.",bBack:"Retour",bPseudo:"Choisis ton pseudo pour apparaître dans les classements.",name:"Français",daily:"Quiz du jour · 5",all:"Tester les 14 formats",bank:"Quiz au hasard · banque",bankLabel:"Banque",prev:"Jour précédent",next:"Jour suivant",
- labels:{choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",spot:"Sur la photo",zoom:"Dézoom"},spotHint:"Touche la bonne personne sur la photo.",spotMiss:"Raté ! La bonne personne est entourée.",spotHintN:"Touche la ou les bonnes personnes (touche à nouveau pour enlever), puis valide.",spotMissN:"En bleu, les bonnes réponses ; en rouge, les erreurs.",
+ labels:{choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot à compléter",text:"Saisie libre",spot:"Sur la photo",zoom:"Dézoom"},spotHint:"Touche la bonne personne sur la photo.",spotMiss:"Raté ! La bonne personne est entourée.",spotHintN:"Touche la ou les bonnes personnes (touche à nouveau pour enlever), puis valide.",spotMissN:"En bleu, les bonnes réponses ; en rouge, les erreurs.",
  validate:"Valider",yes:"Vrai",no:"Faux",yourAnswer:"Ta réponse",typeName:"Tape le nom",tryAgain:"Non, essaie encore",clueNext:"Indice suivant",
  cluePts:p=>`${p} pts en jeu · chaque indice −20 · une erreur dévoile l’indice suivant`,mapLoading:"Chargement de la carte…",mapFail:"La carte n’a pas pu se charger.",
  mapPoint:km=>`Touche la carte à l’endroit exact. Bonne réponse à moins de ${km} km.`,mapCountry:"Touche le bon pays.",mapAria:"Carte",euroAria:"Carte de l'Europe, touche pour placer ta réponse",euroHint:"Touche la carte. Bonne réponse à moins de 150 km.",
@@ -452,7 +489,7 @@ fr:{loc:"fr-FR",horsCl:"Hors classement : ce quiz est terminé, le suivant est s
  storySaved:"Image enregistrée : ajoute-la à ta story Instagram.",storyPress:"Appuie longuement sur l’image pour l’enregistrer, puis ajoute-la à ta story.",storyAlt:"Image de ton score à partager en story",
  pick:"Choisis ta langue",qNote:""},
 en:{loc:"en-GB",horsCl:"Not ranked: this quiz is over, the next one is out.",bEmpty:"Nobody has played yet. Be the first!",bErr:"Leaderboard unavailable right now.",bAll:"See the full leaderboard",bTop:"Top",bLess:"Collapse",lbBtn:"Leaderboard",boards:"Leaderboards",bDay:"Today",bMonth:"This month",bEver:"All time",bYou:"You",bYourRank:r=>`You are #${r}`,bPts:"pts",bDemo:"Mock-up: players and scores are made up.",bBack:"Back",bPseudo:"Choose a nickname to appear on the leaderboards.",name:"English",daily:"Daily quiz · 5",all:"Try all 14 formats",bank:"Random quiz · bank",bankLabel:"Bank",prev:"Previous day",next:"Next day",
- labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",odd:"Odd one out",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",reveal:"Reveal · 20 s",clues:"Clue by clue",letters:"Unscramble",motus:"Hidden word",text:"Free answer",spot:"In the photo",zoom:"Zoom out"},spotHint:"Tap the right person in the photo.",spotMiss:"Missed! The right person is circled.",spotHintN:"Tap every right person (tap again to remove), then confirm.",spotMissN:"Blue: right answers; red: mistakes.",
+ labels:{choice:"Single choice",multi:"Multiple choice",tf:"True or false",odd:"Odd one out",map:"Map",slider:"Slider",range:"Range",order:"Put in order",pairs:"Match the pairs",reveal:"Reveal · 20 s",clues:"Clue by clue",letters:"Unscramble",motus:"Fill in the word",text:"Free answer",spot:"In the photo",zoom:"Zoom out"},spotHint:"Tap the right person in the photo.",spotMiss:"Missed! The right person is circled.",spotHintN:"Tap every right person (tap again to remove), then confirm.",spotMissN:"Blue: right answers; red: mistakes.",
  validate:"Submit",yes:"True",no:"False",yourAnswer:"Your answer",typeName:"Type the name",tryAgain:"No, try again",clueNext:"Next clue",
  cluePts:p=>`${p} pts at stake · each clue −20 · a wrong guess reveals the next clue`,mapLoading:"Loading map…",mapFail:"The map couldn’t load.",
  mapPoint:km=>`Tap the exact spot on the map. Correct within ${km} km.`,mapCountry:"Tap the right country.",mapAria:"Map",euroAria:"Map of Europe, tap to place your answer",euroHint:"Tap the map. Correct within 150 km.",
@@ -469,7 +506,7 @@ en:{loc:"en-GB",horsCl:"Not ranked: this quiz is over, the next one is out.",bEm
  storySaved:"Image saved: add it to your Instagram story.",storyPress:"Press and hold the image to save it, then add it to your story.",storyAlt:"Image of your score to share in a story",
  pick:"Choose your language",qNote:"Questions are still in French for now."},
 de:{loc:"de-DE",horsCl:"Außer Wertung: dieses Quiz ist vorbei, das nächste ist da.",bEmpty:"Noch hat niemand gespielt. Sei der Erste!",bErr:"Rangliste gerade nicht verfügbar.",bAll:"Ganze Rangliste ansehen",bTop:"Top",bLess:"Einklappen",lbBtn:"Rangliste",boards:"Ranglisten",bDay:"Heute",bMonth:"Dieser Monat",bEver:"Gesamt",bYou:"Du",bYourRank:r=>`Du bist auf Platz ${r}`,bPts:"Pkt.",bDemo:"Entwurf: Spieler und Ergebnisse sind erfunden.",bBack:"Zurück",bPseudo:"Wähle einen Spitznamen, um in den Ranglisten zu erscheinen.",name:"Deutsch",daily:"Quiz des Tages · 5",all:"Alle 14 Formate testen",bank:"Zufallsquiz · Fragenpool",bankLabel:"Fragenpool",prev:"Vorheriger Tag",next:"Nächster Tag",
- labels:{choice:"Einzelauswahl",multi:"Mehrfachauswahl",tf:"Richtig oder falsch",odd:"Was passt nicht?",map:"Karte",slider:"Schieberegler",range:"Spanne",order:"In die richtige Reihenfolge",pairs:"Paare verbinden",reveal:"Enthüllung · 20 s",clues:"Hinweis für Hinweis",letters:"Buchstabensalat",motus:"Verstecktes Wort",text:"Freie Antwort",spot:"Auf dem Foto",zoom:"Auszoomen"},spotHint:"Tippe auf die richtige Person.",spotMiss:"Daneben! Die richtige Person ist eingekreist.",spotHintN:"Tippe alle richtigen Personen an (nochmal tippen zum Entfernen), dann bestätigen.",spotMissN:"Blau: richtig; rot: falsch.",
+ labels:{choice:"Einzelauswahl",multi:"Mehrfachauswahl",tf:"Richtig oder falsch",odd:"Was passt nicht?",map:"Karte",slider:"Schieberegler",range:"Spanne",order:"In die richtige Reihenfolge",pairs:"Paare verbinden",reveal:"Enthüllung · 20 s",clues:"Hinweis für Hinweis",letters:"Buchstabensalat",motus:"Wort ergänzen",text:"Freie Antwort",spot:"Auf dem Foto",zoom:"Auszoomen"},spotHint:"Tippe auf die richtige Person.",spotMiss:"Daneben! Die richtige Person ist eingekreist.",spotHintN:"Tippe alle richtigen Personen an (nochmal tippen zum Entfernen), dann bestätigen.",spotMissN:"Blau: richtig; rot: falsch.",
  validate:"Bestätigen",yes:"Richtig",no:"Falsch",yourAnswer:"Deine Antwort",typeName:"Gib den Namen ein",tryAgain:"Nein, versuch’s nochmal",clueNext:"Nächster Hinweis",
  cluePts:p=>`${p} Pkt. im Spiel · jeder Hinweis −20 · ein Fehler zeigt den nächsten Hinweis`,mapLoading:"Karte wird geladen…",mapFail:"Die Karte konnte nicht geladen werden.",
  mapPoint:km=>`Tippe auf die genaue Stelle. Richtig bis ${km} km Abstand.`,mapCountry:"Tippe auf das richtige Land.",mapAria:"Karte",euroAria:"Europakarte, tippe, um deine Antwort zu setzen",euroHint:"Tippe auf die Karte. Richtig bis 150 km Abstand.",
@@ -486,7 +523,7 @@ de:{loc:"de-DE",horsCl:"Außer Wertung: dieses Quiz ist vorbei, das nächste ist
  storySaved:"Bild gespeichert: füge es deiner Instagram‑Story hinzu.",storyPress:"Halte das Bild gedrückt, um es zu speichern, und füge es dann deiner Story hinzu.",storyAlt:"Bild deines Ergebnisses für die Story",
  pick:"Wähle deine Sprache",qNote:"Die Fragen sind vorerst noch auf Französisch."},
 es:{loc:"es-ES",horsCl:"Fuera de clasificación: este quiz terminó, ya salió el siguiente.",bEmpty:"Nadie ha jugado aún. ¡Sé el primero!",bErr:"Clasificación no disponible ahora.",bAll:"Ver la clasificación completa",bTop:"Top",bLess:"Reducir",lbBtn:"Clasificación",boards:"Clasificaciones",bDay:"Hoy",bMonth:"Este mes",bEver:"Histórico",bYou:"Tú",bYourRank:r=>`Estás en el puesto ${r}`,bPts:"pts",bDemo:"Maqueta: los jugadores y las puntuaciones son inventados.",bBack:"Volver",bPseudo:"Elige un apodo para aparecer en las clasificaciones.",name:"Español",daily:"Quiz del día · 5",all:"Probar los 14 formatos",bank:"Quiz aleatorio · banco",bankLabel:"Banco",prev:"Día anterior",next:"Día siguiente",
- labels:{choice:"Respuesta única",multi:"Respuesta múltiple",tf:"Verdadero o falso",odd:"El intruso",map:"Mapa",slider:"Deslizador",range:"Horquilla",order:"Ordenar",pairs:"Unir parejas",reveal:"Revelación · 20 s",clues:"Pista a pista",letters:"Letras desordenadas",motus:"Palabra oculta",text:"Respuesta libre",spot:"En la foto",zoom:"Zoom atrás"},spotHint:"Toca a la persona correcta en la foto.",spotMiss:"¡Fallo! La persona correcta está rodeada.",spotHintN:"Toca a todas las personas correctas (vuelve a tocar para quitar) y valida.",spotMissN:"En azul, las correctas; en rojo, los errores.",
+ labels:{choice:"Respuesta única",multi:"Respuesta múltiple",tf:"Verdadero o falso",odd:"El intruso",map:"Mapa",slider:"Deslizador",range:"Horquilla",order:"Ordenar",pairs:"Unir parejas",reveal:"Revelación · 20 s",clues:"Pista a pista",letters:"Letras desordenadas",motus:"Completa la palabra",text:"Respuesta libre",spot:"En la foto",zoom:"Zoom atrás"},spotHint:"Toca a la persona correcta en la foto.",spotMiss:"¡Fallo! La persona correcta está rodeada.",spotHintN:"Toca a todas las personas correctas (vuelve a tocar para quitar) y valida.",spotMissN:"En azul, las correctas; en rojo, los errores.",
  validate:"Validar",yes:"Verdadero",no:"Falso",yourAnswer:"Tu respuesta",typeName:"Escribe el nombre",tryAgain:"No, inténtalo de nuevo",clueNext:"Siguiente pista",
  cluePts:p=>`${p} pts en juego · cada pista −20 · un error muestra la siguiente pista`,mapLoading:"Cargando el mapa…",mapFail:"No se pudo cargar el mapa.",
  mapPoint:km=>`Toca el lugar exacto en el mapa. Correcto a menos de ${km} km.`,mapCountry:"Toca el país correcto.",mapAria:"Mapa",euroAria:"Mapa de Europa, toca para colocar tu respuesta",euroHint:"Toca el mapa. Correcto a menos de 150 km.",
@@ -557,7 +594,7 @@ function applyLangStatic(){
 }
 
 const FORMATS=["choice","multi","tf","odd","map","slider","range","order","pairs","reveal","clues","letters","motus","text"];
-const LABEL={choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot caché",text:"Saisie libre",spot:"Sur la photo",zoom:"Dézoom"};
+const LABEL={choice:"Choix unique",multi:"Choix multiple",tf:"Vrai ou faux",odd:"L'intrus",map:"Carte",slider:"Curseur",range:"Fourchette",order:"Remettre dans l'ordre",pairs:"Relier par paires",reveal:"Révélation · 20 s",clues:"Indices successifs",letters:"Lettres à remettre",motus:"Mot à compléter",text:"Saisie libre",spot:"Sur la photo",zoom:"Dézoom"};
 
 // ================= Rotation quotidienne =================
 const JOUEUR=true, APERCU=false; // APERCU : page de test de Gilles (vue joueur, tous les jours proposés, rejouables) // true sur le site public (build_site.py) : vue joueur seule, quiz programmés seulement
@@ -707,7 +744,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     case"spot":body=`<div class="spotw" id="spw"><img src="${q.img}" alt="" draggable="false">${q.spots?`<button class="spgo" id="go" disabled>${T.validate}</button>`:""}</div><p class="hint" id="sph">${q.spots?T.spotHintN:T.spotHint}</p>`;break;
     case"text":body=`<input class="textin" id="tx" type="text" autocomplete="off" autocapitalize="none" placeholder="${T.yourAnswer}" aria-label="${T.yourAnswer}"><button class="btn" id="go">${T.validate}</button>`;break;
   }
-  st.innerHTML=`<section class="card"><span class="kind"><span>${T.labels[q.type]}</span><span>${idx+1}/${qs.length}</span></span><h2 class="q">${String(q.q).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\n/g,"<br>")}</h2>${q.img&&q.type!=="spot"&&q.type!=="zoom"?`<img class="qimg" src="${q.img}" alt="">`:""}${body}<div id="fb"></div></section>`;
+  st.innerHTML=`<section class="card"><span class="kind"><span>${T.labels[q.type]}</span><span>${idx+1}/${qs.length}</span></span><h2 class="q">${String(q.type==="motus"&&q.cat&&(CPL[LANG]||CPL.fr).q[q.cat]||q.q).replace(/\*([^*]+)\*/g,"<i>$1</i>").replace(/\n/g,"<br>")}</h2>${q.img&&q.type!=="spot"&&q.type!=="zoom"?`<img class="qimg" src="${q.img}" alt="">`:""}${body}<div id="fb"></div></section>`;
   const opts=[...st.querySelectorAll(".opt")];
   const lock=()=>opts.forEach(o=>o.disabled=true);
 
@@ -849,7 +886,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       opts.forEach(o=>{if(o.dataset.s==="L"){const i=+o.dataset.i;o.classList.add(links[i]===i?"right":"wrong")}});
       draw();done(good===n,pairsScore(good,n),T.pairsGood(good,n))};
   }
-  if(q.type==="motus")motusGame(q,$("#motus"),(ok,score,extra)=>done(ok,score,extra));
+  if(q.type==="motus")completeGame(q,$("#motus"),(ok,score,extra)=>done(ok,score,extra));
   if(q.type==="letters"){
     const tiles=[...st.querySelectorAll(".tile")],slots=[...st.querySelectorAll(".slot")];let typed=[],usedInd=false;
     if($("#ind"))$("#ind").onclick=()=>{usedInd=true;const t=$("#indt");t.textContent=q.indice;t.hidden=false;$("#ind").remove()};
@@ -1262,6 +1299,13 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 .sigf{display:flex;flex-direction:column;gap:8px;margin-top:8px}.sigf[hidden]{display:none}.sigl[hidden]{display:none}
 .sigf textarea{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font:400 .95rem var(--body);color:var(--ink);min-height:70px;resize:vertical}
 .sigok{text-align:center}
+.cp-row{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin:4px auto 0;width:min(100%,calc(var(--n,5)*52px))}
+.cp-cell{aspect-ratio:1;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font:800 min(1.5rem,6vw) var(--display);text-transform:uppercase;background:var(--surface)}
+.cp-cell.given{background:#E6F8FC;border-color:#E6F8FC;color:var(--ink)}
+.cp-cell.cur{border-color:var(--magenta)}
+.cp-cell.brk{margin-left:10px}
+.cp-row.shake{animation:cpshake .35s}@keyframes cpshake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.cp-rule{text-align:center;margin:2px 0 0}.cp-msg{text-align:center;margin:0;min-height:1.2em;font-weight:700;color:var(--magenta)}
 .skiplink{display:block;margin:14px auto 0;padding:6px 10px;background:none;border:0;color:var(--muted);font:500 .85rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
 <script>
