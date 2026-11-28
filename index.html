@@ -855,7 +855,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
     const lo=$("#lo"),hi=$("#hi"),span=q.max-q.min,upd=()=>{let a=+lo.value,b=+hi.value;if(a>b)[a,b]=[b,a];$("#out").textContent=`${a} – ${b}`;const f=$("#fill");f.style.left=((a-q.min)/span*100)+"%";f.style.width=((b-a)/span*100)+"%";if(q.pari)pariShow(q);return[a,b]};
     lo.oninput=hi.oninput=upd;upd();if(q.pari){const iv=setInterval(()=>{if(!$("#gain")){clearInterval(iv);return}pariShow(q)},250)}
     $("#go").onclick=()=>{lo.disabled=hi.disabled=true;$("#go").remove();
-      const[a,b]=upd();$("#gain")?.remove();$("#parih")?.remove();const inside=q.a>=a&&q.a<=b,score=Math.round((q.pari?pariScore:rangeScore)(q,a,b)*100)/100;
+      const[a,b]=upd();$("#gain")?.remove();const inside=q.a>=a&&q.a<=b,score=Math.round((q.pari?pariScore:rangeScore)(q,a,b)*100)/100;
       done(inside,score,T.rangeAns(q.a,a,b))};
   }
   if(q.type==="order"){
