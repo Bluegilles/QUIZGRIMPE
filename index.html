@@ -87,6 +87,7 @@ h1 .hl{color:var(--magenta);background:linear-gradient(transparent 58%,var(--yel
 .dual input::-webkit-slider-runnable-track{background:none;height:36px}
 .dual input::-moz-range-track{background:none}
 .dual input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:26px;height:26px;margin-top:5px;border-radius:50%;background:#fff;border:3px solid var(--magenta);cursor:grab}
+.pari{text-align:center;font-size:17px;margin:12px 0 4px}
 .dual input::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--magenta);cursor:grab}
 .scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 .btn{font:600 1rem var(--body);padding:13px 18px;border-radius:10px;border:none;background:var(--magenta);color:#fff;cursor:pointer}
@@ -280,6 +281,11 @@ function rangeScore(q,a,b){ // écart = moitié de la largeur + distance jusqu'a
   const x=+q.a,out=x<a?a-x:x>b?x-b:0,s=ecartScore(q,out+(b-a)/2);
   return out>0?s/2:s; // réponse hors de la fourchette : points divisés par 2, donc 50 au maximum (Gilles, 17/11)
 }
+// Fourchette en pari (test, Gilles 28/11) : réponse dedans → 50 à 100 pts selon la largeur ; dehors → 30 pts au plus selon la distance
+function pariGain(q,a,b){return .5+.5*ecartScore(q,(b-a)/2)}
+function pariScore(q,a,b){const x=+q.a,out=x<a?a-x:x>b?x-b:0;return out>0?.3*ecartScore(q,out):pariGain(q,a,b)}
+const TESTPARI=new URLSearchParams(location.search).get("test")==="pari";
+const PARIQ=[{"num": 767, "q": "En quelle année Petzl a‑t‑il sorti le Grigri ?", "min": 1970, "max": 2010, "a": 1991, "why": "", "format": "range", "pari": true}, {"num": 712, "q": "En quelle année Free Solo a‑t‑il reçu l’Oscar du meilleur documentaire ?", "min": 2010, "max": 2026, "a": 2019, "why": "https://letterboxd.com/film/free-solo/", "format": "range", "pari": true}, {"num": 929, "q": "En combien de minutes la cordée Honnold‑Caldwell a‑t‑elle gravi le Nose en 2018, record de vitesse ?", "min": 60, "max": 400, "a": 118, "why": "1 h 58 min 07 s.", "format": "range", "pari": true}, {"num": 1107, "q": "En combien de jours Adam Ondra a‑t‑il enchaîné le Dawn Wall, en 2016 ?", "min": 1, "max": 40, "a": 8, "why": "La face sud-est d’El Capitan : 32 longueurs, libérées en 2015 par Tommy Caldwell et Kevin Jorgeson. Les deux plus dures, la 14 et la 15, sont cotées 9a (5.14d).", "format": "range", "pari": true}];
 // « Passer » : première touche = « Sûr ? Touche encore », deuxième touche = on abandonne la question (0 pt) — Gilles 23/11
 function armSkip(b,lab,sure,go){if(b)b.onclick=go}
 // --- « Mot à compléter » : une rangée, des lettres données, on remplit les trous (Gilles 27/11, remplace le mot caché à la Wordle) ---
@@ -619,6 +625,7 @@ function currentDate(){const d=new Date();d.setDate(d.getDate()+dayOffset);retur
 function dayNum(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)}
 function rng(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
 function buildQuiz(){
+  if(mode==="pari")return PARIQ.map(q0=>({...loc(q0),type:"range"}));
   if(mode==="bank"&&BANKQ)return bankQuiz();
   if(mode==="daily"&&(PROG||JOUEUR)){const L=PROG&&PROG[ymd(currentDate())];return L?L.map(q0=>{const q=loc(q0);return{...mixOpts(q),type:q.format,q:JOUEUR?q.q:q.q+` <small style="color:var(--muted);font-size:.7em">n° ${q.num}</small>`}}):[]}
   const n=dayNum(currentDate()), r=rng(n);
@@ -679,7 +686,7 @@ function start(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
   $("#mDaily").setAttribute("aria-pressed",mode==="daily");$("#mAll").setAttribute("aria-pressed",mode==="all");$("#mBank").setAttribute("aria-pressed",mode==="bank");
   if(mode==="bank")$("#dlabel").textContent=T.bankLabel;
   qs=buildQuiz();idx=0;results=[];
-  if(mode==="all"){render();return}
+  if(mode==="all"||mode==="pari"){render();return}
   if(mode==="daily"&&!qs.length&&LANG){noQuiz();return}
   if(!LANG){
     $("#stage").innerHTML=`<section class="card welcome langpick"><h2 class="q">Choose your language</h2><div class="langlist">${LANGS.map(l=>`<button data-l="${l}"><span class="fl">${FLAG[l]}</span>${I18N[l].name}<span class="ar">›</span></button>`).join("")}</div></section>`;
@@ -729,7 +736,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       body=`<div class="slider"><output id="out">${a} – ${b}</output>
         <div class="dual"><div class="track"></div><div class="fill" id="fill"></div><input type="range" id="lo" min="${q.min}" max="${q.max}" value="${a}" aria-label="${T.rangeStart}"><input type="range" id="hi" min="${q.min}" max="${q.max}" value="${b}" aria-label="${T.rangeEnd}"></div>
         <div class="scale"><span>${q.min}</span><span>${q.max}</span></div>
-        <p class="hint">${T.rangeHint}</p></div><button class="btn" id="go">${T.validate}</button>`;break}
+        ${q.pari?`<p class="pari" id="gain"></p><p class="hint">Parie sur une fourchette. Si la réponse est dedans, tu gagnes 50 à 100 pts : plus elle est serrée, plus tu gagnes. Si elle est dehors, 30 pts au plus.</p>`:`<p class="hint">${T.rangeHint}</p>`}</div><button class="btn" id="go">${T.validate}</button>`;break}
     case"order":body=`<div class="opts one" id="ord">${shuffle(q.items.map((t,i)=>({t,i})),idx+7).map(o=>`<button class="opt" data-i="${o.i}">${o.t}</button>`).join("")}</div><p class="hint">${T.orderHint}</p><div class="actions"><button class="btn ghost" id="reset">${T.clearAll}</button><button class="btn" id="go" disabled>${T.validate}</button></div>`;break;
     case"pairs":{
       const right=shuffle(q.right.map((t,i)=>({t,i})),idx+3);
@@ -843,10 +850,10 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       done(ok,f,ok?"":T.answer(sc?q.a:(q.reponse||(q.a+" "+(q.unit||"")))))};
   }
   if(q.type==="range"){
-    const lo=$("#lo"),hi=$("#hi"),span=q.max-q.min,upd=()=>{let a=+lo.value,b=+hi.value;if(a>b)[a,b]=[b,a];$("#out").textContent=`${a} – ${b}`;const f=$("#fill");f.style.left=((a-q.min)/span*100)+"%";f.style.width=((b-a)/span*100)+"%";return[a,b]};
+    const lo=$("#lo"),hi=$("#hi"),span=q.max-q.min,upd=()=>{let a=+lo.value,b=+hi.value;if(a>b)[a,b]=[b,a];$("#out").textContent=`${a} – ${b}`;const f=$("#fill");f.style.left=((a-q.min)/span*100)+"%";f.style.width=((b-a)/span*100)+"%";if(q.pari)$("#gain").innerHTML=`🎯 Si c’est dedans : <b>${Math.round(pariGain(q,a,b)*100)} pts</b>`;return[a,b]};
     lo.oninput=hi.oninput=upd;upd();
     $("#go").onclick=()=>{lo.disabled=hi.disabled=true;$("#go").remove();
-      const[a,b]=upd(),inside=q.a>=a&&q.a<=b,score=Math.round(rangeScore(q,a,b)*100)/100;
+      const[a,b]=upd(),inside=q.a>=a&&q.a<=b,score=Math.round((q.pari?pariScore:rangeScore)(q,a,b)*100)/100;
       done(inside,score,T.rangeAns(q.a,a,b))};
   }
   if(q.type==="order"){
@@ -1040,6 +1047,9 @@ function cdText(){const t=new Date(),d=nextStart(),ms=d-t;
   if(ms>7*864e5)return PTXT[LANG||"fr"].nextOn(d.toLocaleDateString(T.loc,{weekday:"long",day:"numeric",month:"long"}));
   return T.newIn(Math.floor(ms/36e5),Math.floor(ms%36e5/6e4)).replace(/\.$/,"")+` (${(MATIN[LANG||"fr"]||MATIN.fr)(d.toLocaleDateString(T.loc,{weekday:"long"}))}).`}
 function end(noRec){
+  if(mode==="pari"){const pts=results.reduce((s,r)=>s+r.pts,0);
+    $("#stage").innerHTML=`<section class="card end"><div class="endhead"><div class="score">${pts}<small> / ${qs.length*100}</small></div><div class="grid">${results.map(r=>r.ok?"✅":"❌").join("")}</div></div><p class="hint">Test des fourchettes en pari : ce score ne compte nulle part.</p><button class="btn" id="re">Rejouer le test</button><a class="lnk" href="./">Retour au quiz</a></section>`;
+    $("#re").onclick=()=>{qs=buildQuiz();idx=0;results=[];render();scrollTo(0,0)};return}
   if(ecOn()&&!noRec)ecSet(null);
   {const ls=document.querySelector(".langsel");if(ls)ls.style.display=""}
   const nq=nextQuiz(mode==="daily"?dayOffset:0);
@@ -1262,7 +1272,8 @@ function apercuBar(){ // bandeau de l'aperçu : un bouton par jour proposé
   document.querySelector("header").after(host);draw();
 }
 const progLoad=fetch("programme.json").then(r=>r.ok?r.json():{}).then(o=>{PROG=progDecode(o);if(!Object.keys(PROG).length&&!JOUEUR)PROG=null}).catch(()=>{});
-if(JOUEUR)progLoad.then(start);
+if(TESTPARI){mode="pari";progLoad.then(start)}
+else if(JOUEUR)progLoad.then(start);
 else if(APERCU)progLoad.then(()=>{apercuBar();const ks=Object.keys(PROG||{}).sort();if(ks.length){const t=new Date();t.setHours(12,0,0,0);dayOffset=Math.round((new Date(ks[0]+"T12:00:00")-t)/864e5)}start();document.querySelector(".apbar [aria-pressed]")&&document.querySelectorAll(".apbar [data-k]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===ymd(currentDate())))});
 else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).then(d=>{BANKQ=d})]).then(start).catch(()=>{mode="daily";start()});
 </script>
