@@ -736,7 +736,7 @@ function render(){if($("#mDaily"))$("#mDaily").textContent=quizLabel();
       body=`<div class="slider"><output id="out">${a} – ${b}</output>
         <div class="dual"><div class="track"></div><div class="fill" id="fill"></div><input type="range" id="lo" min="${q.min}" max="${q.max}" value="${a}" aria-label="${T.rangeStart}"><input type="range" id="hi" min="${q.min}" max="${q.max}" value="${b}" aria-label="${T.rangeEnd}"></div>
         <div class="scale"><span>${q.min}</span><span>${q.max}</span></div>
-        ${q.pari?`<p class="pari" id="gain"></p><p class="hint">Parie sur une fourchette. Si la réponse est dedans, tu gagnes 50 à 100 pts : plus elle est serrée, plus tu gagnes. Si elle est dehors, 30 pts au plus.</p>`:`<p class="hint">${T.rangeHint}</p>`}</div><button class="btn" id="go">${T.validate}</button>`;break}
+        ${q.pari?`<p class="pari" id="gain"></p><p class="hint">Si la bonne réponse est dans ta fourchette : entre 50 et 100 pts.<br>Si elle est en dehors : 30 pts maximum.</p>`:`<p class="hint">${T.rangeHint}</p>`}</div><button class="btn" id="go">${T.validate}</button>`;break}
     case"order":body=`<div class="opts one" id="ord">${shuffle(q.items.map((t,i)=>({t,i})),idx+7).map(o=>`<button class="opt" data-i="${o.i}">${o.t}</button>`).join("")}</div><p class="hint">${T.orderHint}</p><div class="actions"><button class="btn ghost" id="reset">${T.clearAll}</button><button class="btn" id="go" disabled>${T.validate}</button></div>`;break;
     case"pairs":{
       const right=shuffle(q.right.map((t,i)=>({t,i})),idx+3);
@@ -1330,7 +1330,7 @@ else if(!APERCU)Promise.all([progLoad,fetch("questions.json").then(r=>r.json()).
 const GRACE={tf:6,map:6,spot:8,choice:8,odd:8,slider:8,range:8,text:10,multi:12,pairs:12,order:12,letters:20,motus:20,clues:20};
 const SPD_PER_S=.01,SPD_FLOOR=.8;
 let qStart=0,spdTimer=null;
-const graceOf=q=>{const g=GRACE[q.type];if(q.type==="spot"&&q.spots)return 12;return g&&q.type==="pairs"&&q.left?Math.max(g,g+3*(q.left.length-4)):g};
+const graceOf=q=>{const g=GRACE[q.type]+(q.pari?3:0);if(q.type==="spot"&&q.spots)return 12;return g&&q.type==="pairs"&&q.left?Math.max(g,g+3*(q.left.length-4)):g};
 const spdFactor=q=>{const g=graceOf(q);if(!g||!qStart)return 1;const t=(performance.now()-qStart)/1000;return Math.max(SPD_FLOOR,1-SPD_PER_S*Math.max(0,t-g))};
 const _render=render;
 render=function(){
